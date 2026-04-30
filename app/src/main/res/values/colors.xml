@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <color name="base_bg_light">#F8F9FA</color> <color name="text_main_dark">#111827</color> <color name="text_secondary_gray">#6B7280</color> <color name="midas_green">#00D06C</color> <color name="midas_green_faded">#1A00D06C</color> </resources>
