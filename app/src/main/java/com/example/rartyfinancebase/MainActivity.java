@@ -11,6 +11,7 @@ import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -27,16 +28,20 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
-    private LinearLayout containerCrypto, containerStocks, containerIndices, containerForex, containerCommodities, containerAlarms;
+
+    // UI Bileşenleri
+    private LinearLayout containerAlarms;
     private TextView tvActiveAlarm;
     private EditText etAlarmLevel;
     private Button btnSetAlarm;
     private Spinner spinnerAssets;
 
+    // API ve Arka Plan Görevleri
     private BinanceApi binanceApi;
     private YahooApi yahooApi;
     private Handler handler = new Handler();
@@ -45,40 +50,74 @@ public class MainActivity extends AppCompatActivity {
     private final String CHANNEL_ID = "rarty_alerts";
     private List<Alarm> alarmList = new ArrayList<>();
 
-    // VARLIK LİSTELERİ
-    private final String[][] cryptoList = {
-            {"BTCUSDT", "Bitcoin", "BTC"},
-            {"ETHUSDT", "Ethereum", "ETH"},
-            {"BNBUSDT", "BNB", "BNB"},
-            {"SOLUSDT", "Solana", "SOL"},
-            {"XRPUSDT", "Ripple", "XRP"}
-    };
-    private final String[][] mag7List = {{"AAPL", "Apple Inc."}, {"MSFT", "Microsoft"}, {"GOOGL", "Alphabet"}, {"AMZN", "Amazon"}, {"META", "Meta Platforms"}, {"TSLA", "Tesla"}, {"NVDA", "Nvidia Corp."}};
-    private final String[][] indicesList = {{"XU100.IS", "BİST 100"}, {"^GSPC", "S&P 500"}, {"^IXIC", "Nasdaq"}, {"^DJI", "Dow Jones"}};
+    // --- YENİ DİNAMİK KATEGORİ SİSTEMİ ---
+    public static class PortfolioCategory {
+        public String name;
+        public List<String[]> assets;
+        public boolean isCrypto;
+        public PortfolioCategory(String name, List<String[]> assets, boolean isCrypto) {
+            this.name = name;
+            this.assets = assets;
+            this.isCrypto = isCrypto;
+        }
+    }
+    public static List<PortfolioCategory> categoryList = new ArrayList<>();
 
-    // DÖVİZ LİSTESİ
-    private final String[][] forexList = {
-            {"TRY=X", "USD/TRY"},
-            {"EURTRY=X", "EUR/TRY"},
-            {"EURUSD=X", "EUR/USD"}
-    };
-    private final String[][] commoditiesList = {{"GC=F", "Altın (Ons)"}, {"SI=F", "Gümüş"}, {"HG=F", "Bakır"}, {"PA=F", "Paladyum"}};
+    // VARLIK LİSTELERİ
+    public static List<String[]> cryptoList = new ArrayList<>(Arrays.asList(
+            new String[]{"BTCUSDT", "Bitcoin", "BTC"},
+            new String[]{"ETHUSDT", "Ethereum", "ETH"},
+            new String[]{"BNBUSDT", "BNB", "BNB"},
+            new String[]{"SOLUSDT", "Solana", "SOL"},
+            new String[]{"XRPUSDT", "Ripple", "XRP"}
+    ));
+    public static List<String[]> mag7List = new ArrayList<>(Arrays.asList(
+            new String[]{"AAPL", "Apple Inc."},
+            new String[]{"MSFT", "Microsoft"},
+            new String[]{"GOOGL", "Alphabet"},
+            new String[]{"AMZN", "Amazon"},
+            new String[]{"META", "Meta Platforms"},
+            new String[]{"TSLA", "Tesla"},
+            new String[]{"NVDA", "Nvidia Corp."}
+    ));
+    public static List<String[]> indicesList = new ArrayList<>(Arrays.asList(
+            new String[]{"XU100.IS", "BİST 100"},
+            new String[]{"^GSPC", "S&P 500"},
+            new String[]{"^IXIC", "Nasdaq"},
+            new String[]{"^DJI", "Dow Jones"}
+    ));
+    public static List<String[]> forexList = new ArrayList<>(Arrays.asList(
+            new String[]{"TRY=X", "USD/TRY"},
+            new String[]{"EURTRY=X", "EUR/TRY"},
+            new String[]{"EURUSD=X", "EUR/USD"}
+    ));
+    public static List<String[]> commoditiesList = new ArrayList<>(Arrays.asList(
+            new String[]{"GC=F", "Altın (Ons)"},
+            new String[]{"SI=F", "Gümüş"},
+            new String[]{"HG=F", "Bakır"},
+            new String[]{"PA=F", "Paladyum"}
+    ));
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        containerCrypto = findViewById(R.id.containerCrypto);
-        containerStocks = findViewById(R.id.containerStocks);
-        containerIndices = findViewById(R.id.containerIndices);
-        containerForex = findViewById(R.id.containerForex);
-        containerCommodities = findViewById(R.id.containerCommodities);
+        // UI Bağlantıları
         containerAlarms = findViewById(R.id.containerAlarms);
         tvActiveAlarm = findViewById(R.id.tvActiveAlarm);
         etAlarmLevel = findViewById(R.id.etAlarmLevel);
         btnSetAlarm = findViewById(R.id.btnSetAlarm);
         spinnerAssets = findViewById(R.id.spinnerAssets);
+
+        // Kategori Havuzunu Doldur
+        if (categoryList.isEmpty()) {
+            categoryList.add(new PortfolioCategory("US-STOCKS", mag7List, false));
+            categoryList.add(new PortfolioCategory("CRYPTO", cryptoList, true));
+            categoryList.add(new PortfolioCategory("ENDEKSLER", indicesList, false));
+            categoryList.add(new PortfolioCategory("FOREX", forexList, false));
+            categoryList.add(new PortfolioCategory("EMTİALAR", commoditiesList, false));
+        }
 
         setupApis();
         createNotificationChannel();
@@ -86,6 +125,174 @@ public class MainActivity extends AppCompatActivity {
         setupAlarmSpinner();
         buildMarketUI();
 
+        // Düzenleme Butonu
+        Button btnEditPortfolio = findViewById(R.id.btnEditPortfolio);
+        btnEditPortfolio.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, EditPortfolioActivity.class);
+            startActivity(intent);
+        });
+
+        // --- ARAMA ÇUBUĞU VE S&P 500 HAVUZU ---
+        AutoCompleteTextView searchTickerInput = findViewById(R.id.searchTickerInput);
+
+        String[] usStocks = {
+                "AAPL - Apple Inc.", "MSFT - Microsoft", "NVDA - Nvidia Corp.", "GOOGL - Alphabet (Class A)",
+                "GOOG - Alphabet (Class C)", "AMZN - Amazon", "META - Meta Platforms", "BRK.B - Berkshire Hathaway",
+                "LLY - Eli Lilly", "AVGO - Broadcom", "TSLA - Tesla", "JPM - JPMorgan Chase", "WMT - Walmart",
+                "UNH - UnitedHealth Group", "V - Visa Inc.", "XOM - Exxon Mobil", "MA - Mastercard", "JNJ - Johnson & Johnson",
+                "PG - Procter & Gamble", "HD - Home Depot", "COST - Costco", "MRK - Merck & Co.", "ABBV - AbbVie",
+                "CRM - Salesforce", "AMD - Advanced Micro Devices", "CVX - Chevron", "NFLX - Netflix",
+                "KO - Coca-Cola", "PEP - PepsiCo", "BAC - Bank of America", "TMO - Thermo Fisher Scientific",
+                "LIN - Linde plc", "MCD - McDonald's", "DIS - Walt Disney", "ADBE - Adobe Inc.", "CSCO - Cisco Systems",
+                "ABT - Abbott Laboratories", "INTU - Intuit", "QCOM - Qualcomm", "IBM - International Business Machines",
+                "CMCSA - Comcast", "CAT - Caterpillar", "VZ - Verizon", "PFE - Pfizer", "BA - Boeing",
+                "INTC - Intel", "NKE - Nike", "UBER - Uber Technologies", "PLTR - Palantir Technologies",
+                "COIN - Coinbase", "MSTR - MicroStrategy", "SMCI - Super Micro Computer", "NOW - ServiceNow",
+                "AMAT - Applied Materials", "TXN - Texas Instruments", "GE - General Electric", "ISRG - Intuitive Surgical",
+                "PM - Philip Morris International", "AMGN - Amgen", "COP - ConocoPhillips", "HON - Honeywell",
+                "UNP - Union Pacific", "SYK - Stryker Corp.", "SPGI - S&P Global", "AXP - American Express",
+                "LMT - Lockheed Martin", "RTX - RTX Corporation", "BKNG - Booking Holdings", "T - AT&T",
+                "PGR - Progressive Corp.", "MDT - Medtronic", "VRTX - Vertex Pharmaceuticals", "BSX - Boston Scientific",
+                "GS - Goldman Sachs", "C - Citigroup", "MS - Morgan Stanley", "BLK - BlackRock", "SCHW - Charles Schwab",
+                "CB - Chubb Limited", "MMC - Marsh & McLennan", "FI - Fiserv", "CVS - CVS Health", "CI - Cigna",
+                "ELV - Elevance Health", "REGN - Regeneron Pharmaceuticals", "VLO - Valero Energy", "MPC - Marathon Petroleum",
+                "PSX - Phillips 66", "SLB - Schlumberger", "EOG - EOG Resources", "PXD - Pioneer Natural Resources",
+                "OXY - Occidental Petroleum", "FCX - Freeport-McMoRan", "NEM - Newmont", "APD - Air Products",
+                "ECL - Ecolab", "SHW - Sherwin-Williams", "CTVA - Corteva", "NUE - Nucor", "NEE - NextEra Energy",
+                "DUK - Duke Energy", "SO - Southern Company", "SRE - Sempra", "AEP - American Electric Power",
+                "D - Dominion Energy", "EXC - Exelon", "WM - Waste Management", "RSG - Republic Services",
+                "CSX - CSX Corp.", "NSC - Norfolk Southern", "FDX - FedEx", "UPS - United Parcel Service",
+                "DAL - Delta Air Lines", "UAL - United Airlines", "LUV - Southwest Airlines", "DE - Deere & Company",
+                "PCAR - PACCAR", "EMR - Emerson Electric", "ETN - Eaton", "PH - Parker-Hannifin", "TT - Trane Technologies",
+                "CARR - Carrier Global", "JCI - Johnson Controls", "IR - Ingersoll Rand", "ROK - Rockwell Automation",
+                "A - Agilent Technologies", "ILMN - Illumina", "IQV - IQVIA", "MTD - Mettler-Toledo", "TMO - Thermo Fisher",
+                "WAT - Waters Corp.", "ZTS - Zoetis", "IDXX - IDEXX Laboratories", "DHR - Danaher", "BDX - Becton Dickinson",
+                "EW - Edwards Lifesciences", "BSX - Boston Scientific", "ALGN - Align Technology", "RMD - ResMed",
+                "STE - STERIS", "GILD - Gilead Sciences", "BIIB - Biogen", "SGEN - Seagen", "MRNA - Moderna",
+                "INCY - Incyte", "VRTX - Vertex", "REGN - Regeneron", "BMY - Bristol-Myers Squibb", "SNY - Sanofi",
+                "GSK - GSK plc", "NVS - Novartis", "AZN - AstraZeneca", "TTE - TotalEnergies", "BP - BP plc",
+                "SHEL - Shell plc", "EQNR - Equinor", "ENB - Enbridge", "TRP - TC Energy", "CNQ - Canadian Natural",
+                "SU - Suncor Energy", "BNS - Bank of Nova Scotia", "BMO - Bank of Montreal", "RY - Royal Bank of Canada",
+                "TD - Toronto-Dominion", "CM - Canadian Imperial", "BAM - Brookfield Asset", "BX - Blackstone",
+                "KKR - KKR & Co.", "APO - Apollo Global", "CG - Carlyle Group", "ARES - Ares Management",
+                "O - Realty Income", "SPG - Simon Property Group", "PLD - Prologis", "AMT - American Tower",
+                "CCI - Crown Castle", "EQIX - Equinix", "DLR - Digital Realty", "PSA - Public Storage",
+                "EXR - Extra Space", "AVB - AvalonBay", "EQR - Equity Residential", "INVH - Invitation Homes",
+                "MAA - Mid-America", "CPT - Camden Property", "SUI - Sun Communities", "ELS - Equity Lifestyle",
+                "WELL - Welltower", "VTR - Ventas", "PEAK - Healthpeak", "ARE - Alexandria Real",
+                "BXP - Boston Properties", "SLG - SL Green", "VNO - Vornado", "KIM - Kimco", "REG - Regency Centers",
+                "FRT - Federal Realty", "NEM - Newmont", "GOLD - Barrick Gold", "AEM - Agnico Eagle",
+                "KGC - Kinross Gold", "WPM - Wheaton Precious", "FNV - Franco-Nevada", "RGLD - Royal Gold",
+                "ALB - Albemarle", "SQM - Sociedad Quimica", "LTHM - Livent", "LAC - Lithium Americas",
+                "RIO - Rio Tinto", "BHP - BHP Group", "VALE - Vale S.A.", "CLF - Cleveland-Cliffs",
+                "X - United States Steel", "STLD - Steel Dynamics", "NUE - Nucor", "RS - Reliance Steel",
+                "AA - Alcoa", "CENX - Century Aluminum", "FCX - Freeport-McMoRan", "SCCO - Southern Copper",
+                "TECK - Teck Resources", "AG - First Majestic", "PAAS - Pan American", "HL - Hecla Mining",
+                "CDE - Coeur Mining", "MTA - Metalla Royalty", "OR - Osisko Gold", "SAND - Sandstorm Gold",
+                "MUX - McEwen Mining", "IAG - IAMGOLD", "NGD - New Gold", "EGO - Eldorado Gold",
+                "EQX - Equinox Gold", "GFI - Gold Fields", "HMY - Harmony Gold", "AU - AngloGold",
+                "SBSW - Sibanye Stillwater", "IMPUY - Impala Platinum", "ANGPY - Anglo American Platinum",
+                "AMKBY - A.P. Moller-Maersk", "ZIM - ZIM Integrated", "DAC - Danaos", "SBLK - Star Bulk",
+                "GOGL - Golden Ocean", "SFL - SFL Corp", "FRO - Frontline", "STNG - Scorpio Tankers",
+                "INSW - International Seaways", "TNK - Teekay Tankers", "DHT - DHT Holdings",
+                "EURN - Euronav", "TRMD - TORM", "NAT - Nordic American", "GNK - Genco Shipping",
+                "EGLE - Eagle Bulk", "CPLP - Capital Product", "CMRE - Costamare", "ATCO - Atlas Corp",
+                "MPLX - MPLX LP", "EPD - Enterprise Products", "ET - Energy Transfer", "WMB - Williams Companies",
+                "OKE - ONEOK", "KMI - Kinder Morgan", "TRGP - Targa Resources", "PAA - Plains All American",
+                "MMP - Magellan Midstream", "WES - Western Midstream", "CQP - Cheniere Energy",
+                "LNG - Cheniere Energy Inc", "SRE - Sempra", "SWX - Southwest Gas", "NJR - New Jersey Resources",
+                "SJI - South Jersey Industries", "CPK - Chesapeake Utilities", "ATO - Atmos Energy",
+                "NI - NiSource", "UGI - UGI Corp", "OGE - OGE Energy", "PNW - Pinnacle West",
+                "IDA - IDACORP", "AVA - Avista", "ALE - ALLETE", "MGEE - MGE Energy",
+                "POR - Portland General", "NWN - Northwest Natural", "SR - Spire", "BKH - Black Hills",
+                "MDU - MDU Resources", "CNP - CenterPoint Energy", "CMS - CMS Energy", "DTE - DTE Energy",
+                "WEC - WEC Energy", "LNT - Alliant Energy", "XEL - Xcel Energy", "AEE - Ameren",
+                "ES - Eversource", "FE - FirstEnergy", "PEG - Public Service", "ED - Consolidated Edison",
+                "AWK - American Water", "WTRG - Essential Utilities", "CWT - California Water",
+                "SJW - SJW Group", "MSEX - Middlesex Water", "YORW - York Water", "PRK - Park National",
+                "CBU - Community Bank", "NBTB - NBT Bancorp", "TMP - Tompkins Financial",
+                "FNB - F.N.B. Corp", "FULT - Fulton Financial", "WSFS - WSFS Financial",
+                "UBSI - United Bankshares", "CFR - Cullen/Frost", "TCBI - Texas Capital",
+                "CMA - Comerica", "ZION - Zions Bancorp", "KEY - KeyCorp", "FITB - Fifth Third",
+                "HBAN - Huntington Bancshares", "CFG - Citizens Financial", "RF - Regions Financial",
+                "TFC - Truist Financial", "PNC - PNC Financial", "USB - U.S. Bancorp",
+                "WFC - Wells Fargo", "BAC - Bank of America", "JPM - JPMorgan Chase",
+                "C - Citigroup", "MS - Morgan Stanley", "GS - Goldman Sachs",
+                "SCHW - Charles Schwab", "BLK - BlackRock", "STT - State Street",
+                "BK - Bank of New York Mellon", "NTRS - Northern Trust", "AMP - Ameriprise",
+                "RJF - Raymond James", "LPLA - LPL Financial", "SF - Stifel Financial",
+                "HLI - Houlihan Lokey", "MC - Moelis", "PJT - PJT Partners",
+                "EVR - Evercore", "LAZ - Lazard", "CG - Carlyle Group",
+                "APO - Apollo Global", "KKR - KKR & Co.", "BX - Blackstone",
+                "BAM - Brookfield Asset", "ARES - Ares Management", "OAK - Oaktree",
+                "BEN - Franklin Resources", "IVZ - Invesco", "TROW - T. Rowe Price",
+                "JHG - Janus Henderson", "AMG - Affiliated Managers", "AB - AllianceBernstein",
+                "FCNCA - First Citizens", "SIVB - SVB Financial", "SBNY - Signature Bank",
+                "FRC - First Republic", "PACW - PacWest Bancorp", "WAL - Western Alliance",
+                "EWBC - East West Bancorp", "PINC - Premier Inc.",
+                "IQV - IQVIA Holdings", "PRAH - PRA Health Sciences", "SYNH - Syneos Health",
+                "ICLR - ICON plc", "MEDP - Medpace Holdings", "CRL - Charles River Labs",
+                "WST - West Pharmaceutical", "BIO - Bio-Rad Laboratories", "TMO - Thermo Fisher",
+                "DHR - Danaher Corp", "A - Agilent Technologies", "WAT - Waters Corp",
+                "PKI - PerkinElmer", "MTD - Mettler-Toledo", "ILMN - Illumina",
+                "PACB - Pacific Biosciences", "TXG - 10x Genomics", "NSTG - NanoString Technologies",
+                "FLDM - Fluidigm Corp", "QDEL - Quidel Corp", "HOLX - Hologic",
+                "DXCM - DexCom", "PODD - Insulet", "TNDM - Tandem Diabetes",
+                "MDT - Medtronic", "SYK - Stryker", "BSX - Boston Scientific",
+                "ZBH - Zimmer Biomet", "ABT - Abbott Labs", "JNJ - Johnson & Johnson",
+                "PFE - Pfizer", "MRK - Merck & Co.", "LLY - Eli Lilly",
+                "BMY - Bristol-Myers Squibb", "ABBV - AbbVie", "AMGN - Amgen",
+                "GILD - Gilead Sciences", "BIIB - Biogen", "REGN - Regeneron",
+                "VRTX - Vertex Pharmaceuticals", "INCY - Incyte", "ALXN - Alexion Pharmaceuticals",
+                "SGEN - Seagen", "EXEL - Exelixis", "HALO - Halozyme Therapeutics",
+                "BMRN - BioMarin", "SRPT - Sarepta Therapeutics", "PTCT - PTC Therapeutics",
+                "UTHR - United Therapeutics", "FOLD - Amicus Therapeutics", "RARE - Ultragenyx",
+                "ALNY - Alnylam", "IONS - Ionis Pharmaceuticals", "CRSP - CRISPR Therapeutics",
+                "NTLA - Intellia Therapeutics", "EDIT - Editas Medicine", "BEAM - Beam Therapeutics",
+                "FATE - Fate Therapeutics", "ALLO - Allogene Therapeutics", "CABA - Cabaletta Bio",
+                "PRLD - Prelude Therapeutics", "KROS - Keros Therapeutics", "RLAY - Relay Therapeutics",
+                "KRTX - Karuna Therapeutics", "CERE - Cerevel Therapeutics", "AXSM - Axsome Therapeutics",
+                "ITCI - Intra-Cellular Therapies", "CYTK - Cytokinetics", "MYOV - Myovant Sciences",
+                "ESPR - Esperion Therapeutics", "AKRO - Akero Therapeutics", "MDGL - Madrigal Pharmaceuticals",
+                "VKTX - Viking Therapeutics", "NGM - NGM Biopharmaceuticals", "ALT - Altimmune",
+                "ARNA - Arena Pharmaceuticals", "GLPG - Galapagos NV", "ARGX - argenx SE",
+                "ASND - Ascendis Pharma", "GWPH - GW Pharmaceuticals", "ZLAB - Zai Lab",
+                "BGNE - BeiGene", "INMD - InMode", "NUVA - NuVasive", "GMED - Globus Medical",
+                "PEN - Penumbra", "SIBN - Sientra", "EBS - Emergent BioSolutions",
+                "KNSA - Kiniksa Pharmaceuticals", "RXRX - Recursion Pharmaceuticals", "ABSI - Absci",
+                "DNA - Ginkgo Bioworks", "ZY - Zymergen", "TWST - Twist Bioscience",
+                "BLI - Berkeley Lights", "QSI - Quantum-Si", "MAXN - Maxeon Solar",
+                "RUN - Sunrun", "NOVA - Sunnova", "SPWR - SunPower",
+                "ENPH - Enphase Energy", "SEDG - SolarEdge", "FSLR - First Solar",
+                "CSIQ - Canadian Solar", "JKS - JinkoSolar", "DQ - Daqo New Energy",
+                "PLUG - Plug Power", "FCEL - FuelCell Energy", "BLDP - Ballard Power",
+                "BE - Bloom Energy", "QS - QuantumScape", "ENVX - Enovix",
+                "SLDP - Solid Power", "MVST - Microvast", "CHPT - ChargePoint",
+                "BLNK - Blink Charging", "EVGO - EVgo", "VLTA - Volta",
+                "WBX - Wallbox", "STEM - Stem", "FLNC - Fluence Energy",
+                "NEP - NextEra Energy Partners", "CWEN - Clearway Energy", "HASI - Hannon Armstrong",
+                "AY - Atlantica Sustainable", "BEP - Brookfield Renewable", "PEGI - Pattern Energy"
+        };
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, usStocks);
+        searchTickerInput.setAdapter(adapter);
+
+        searchTickerInput.setOnItemClickListener((parent, view, position, id) -> {
+            String selectedItem = (String) parent.getItemAtPosition(position);
+            String[] parts = selectedItem.split(" - ");
+            String tickerSymbol = parts[0].trim();
+            String name = parts.length > 1 ? parts[1].trim() : tickerSymbol;
+
+            Intent intent = new Intent(MainActivity.this, DetailActivity.class);
+            intent.putExtra("TICKER_SYMBOL", tickerSymbol);
+            intent.putExtra("NAME", name);
+            intent.putExtra("SYMBOL", tickerSymbol);
+            startActivity(intent);
+
+            searchTickerInput.setText("");
+        });
+
+        // Alarm Kurma İşlemi
         btnSetAlarm.setOnClickListener(v -> {
             String val = etAlarmLevel.getText().toString();
             if (!val.isEmpty()) {
@@ -101,6 +308,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        // Veri Güncelleme Döngüsü
         updateTask = new Runnable() {
             @Override
             public void run() {
@@ -109,16 +317,37 @@ public class MainActivity extends AppCompatActivity {
             }
         };
         handler.post(updateTask);
+    } // onCreate BURADA BİTİYOR
+
+    // DİNAMİK ARAYÜZ OLUŞTURUCU (onCreate dışında)
+    private void buildMarketUI() {
+        LinearLayout mainContainer = findViewById(R.id.containerAllMarkets);
+        if (mainContainer == null) return;
+        mainContainer.removeAllViews();
+
+        for (PortfolioCategory cat : categoryList) {
+            TextView tvTitle = new TextView(this);
+            tvTitle.setText(cat.name);
+            tvTitle.setTextSize(12);
+            tvTitle.setTextColor(android.graphics.Color.parseColor("#AAAAAA"));
+            tvTitle.setPadding(0, 40, 0, 10);
+            tvTitle.setAllCaps(true);
+            mainContainer.addView(tvTitle);
+
+            LinearLayout assetContainer = new LinearLayout(this);
+            assetContainer.setOrientation(LinearLayout.VERTICAL);
+            for (String[] asset : cat.assets) {
+                String displaySymbol = asset.length > 2 ? asset[2] : asset[0];
+                addAssetRow(asset[0], asset[1], displaySymbol, assetContainer, cat.isCrypto);
+            }
+            mainContainer.addView(assetContainer);
+        }
     }
 
-
-
-    private void buildMarketUI() {
-        for (String[] crypto : cryptoList) addAssetRow(crypto[0], crypto[1], crypto[2], containerCrypto, true);
-        for (String[] stock : mag7List) addAssetRow(stock[0], stock[1], stock[0], containerStocks, false);
-        for (String[] index : indicesList) addAssetRow(index[0], index[1], index[0], containerIndices, false);
-        for (String[] forex : forexList) addAssetRow(forex[0], forex[1], forex[0], containerForex, false);
-        for (String[] comm : commoditiesList) addAssetRow(comm[0], comm[1], comm[0], containerCommodities, false);
+    @Override
+    protected void onResume() {
+        super.onResume();
+        buildMarketUI(); // Geri dönünce listeyi tazele
     }
 
     private void addAssetRow(String apiSymbol, String name, String displaySymbol, LinearLayout container, boolean isCrypto) {
@@ -126,15 +355,18 @@ public class MainActivity extends AppCompatActivity {
         TextView tvSymbol = view.findViewById(R.id.tvSymbol);
         TextView tvName = view.findViewById(R.id.tvName);
         TextView tvPrice = view.findViewById(R.id.tvPrice);
+
         tvPrice.setTag(apiSymbol);
         tvSymbol.setText(displaySymbol);
         tvName.setText(name);
+        tvPrice.setText("..."); // VERİ GELENE KADAR BOŞ VEYA 0.00 DURMASIN, ŞIK DURSUN
 
         view.setOnClickListener(v -> {
             try {
                 Intent intent = new Intent(MainActivity.this, DetailActivity.class);
                 intent.putExtra("NAME", name);
                 intent.putExtra("SYMBOL", isCrypto ? displaySymbol : apiSymbol);
+                intent.putExtra("TICKER_SYMBOL", isCrypto ? displaySymbol : apiSymbol);
                 startActivity(intent);
             } catch (Exception e) {
                 Toast.makeText(MainActivity.this, "DetailActivity hatası!", Toast.LENGTH_SHORT).show();
@@ -201,11 +433,11 @@ public class MainActivity extends AppCompatActivity {
 
     private void setupAlarmSpinner() {
         List<String> names = new ArrayList<>();
-        for(String[] a : cryptoList) names.add(a[1]);
-        for(String[] a : mag7List) names.add(a[1]);
-        for(String[] a : indicesList) names.add(a[1]);
-        for(String[] a : forexList) names.add(a[1]);
-        for(String[] a : commoditiesList) names.add(a[1]);
+        for(PortfolioCategory cat : categoryList) {
+            for(String[] a : cat.assets) {
+                names.add(a[1]);
+            }
+        }
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, names);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerAssets.setAdapter(adapter);
@@ -213,11 +445,11 @@ public class MainActivity extends AppCompatActivity {
 
     private List<String> getAllSymbols() {
         List<String> symbols = new ArrayList<>();
-        for(String[] a : cryptoList) symbols.add(a[0]);
-        for(String[] a : mag7List) symbols.add(a[0]);
-        for(String[] a : indicesList) symbols.add(a[0]);
-        for(String[] a : forexList) symbols.add(a[0]);
-        for(String[] a : commoditiesList) symbols.add(a[0]);
+        for(PortfolioCategory cat : categoryList) {
+            for(String[] a : cat.assets) {
+                symbols.add(a[0]);
+            }
+        }
         return symbols;
     }
 
@@ -227,11 +459,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void refreshAllData() {
-        for (String[] crypto : cryptoList) fetchBinancePrice(crypto[0]);
-        for (String[] stock : mag7List) fetchYahooPrice(stock[0]);
-        for (String[] index : indicesList) fetchYahooPrice(index[0]);
-        for (String[] forex : forexList) fetchYahooPrice(forex[0]);
-        for (String[] comm : commoditiesList) fetchYahooPrice(comm[0]);
+        for(PortfolioCategory cat : categoryList) {
+            for (String[] asset : cat.assets) {
+                if (cat.isCrypto) {
+                    fetchBinancePrice(asset[0]);
+                } else {
+                    fetchYahooPrice(asset[0]);
+                }
+            }
+        }
     }
 
     private void fetchBinancePrice(String symbol) {
@@ -303,7 +539,7 @@ public class MainActivity extends AppCompatActivity {
 
             if (tvExtra != null) {
                 boolean isStock = false;
-                for (String[] stock : mag7List) {
+                for (String[] stock : mag7List) { // Şimdilik sadece mag7 de ekstra göster
                     if (stock[0].trim().equalsIgnoreCase(symbol.trim())) { isStock = true; break; }
                 }
 

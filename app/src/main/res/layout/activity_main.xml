@@ -18,6 +18,25 @@
         android:paddingBottom="12dp"
         android:letterSpacing="0.03" />
 
+    <!-- ARMA ÇUBUĞU: Önerileri ve Otomatik Tamamlamayı Kapatan Ayarlar Eklendi -->
+    <AutoCompleteTextView
+        android:id="@+id/searchTickerInput"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
+        android:background="@drawable/search_bg"
+        android:hint="ABD Hisse Senedi Ara (Örn: AMD, NVDA)"
+        android:paddingHorizontal="16dp"
+        android:textColor="#FFFFFF"
+        android:textColorHint="#808080"
+        android:textSize="16sp"
+        android:completionThreshold="1"
+        android:maxLines="1"
+        android:importantForAutofill="no"
+        android:inputType="textNoSuggestions|textVisiblePassword|textCapCharacters" />
+
     <!-- KAYDIRILABİLİR İÇERİK -->
     <ScrollView
         android:layout_width="match_parent"
@@ -100,78 +119,27 @@
                     android:layout_marginTop="4dp" />
             </LinearLayout>
 
-            <!-- PİYASA LİSTELERİ -->
-            <TextView
+            <Button
+                android:id="@+id/btnEditPortfolio"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="KRİPTO"
-                android:textSize="12sp"
-                android:textColor="#AAAAAA"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="8dp" />
-            <LinearLayout
-                android:id="@+id/containerCrypto"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical" />
+                android:layout_marginHorizontal="20dp"
+                android:layout_marginTop="15dp"
+                android:layout_marginBottom="10dp"
+                android:backgroundTint="#1A1C20"
+                android:text="Portföyü Düzenle (İsim / Sıralama)"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold" />
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="MAG-7"
-                android:textSize="12sp"
-                android:textColor="#AAAAAA"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="8dp" />
+            <!-- DİNAMİK PİYASA KONTEYNERİ -->
+            <!-- Java tarafındaki kategori sıralamasına göre otomatik dolacak alan -->
             <LinearLayout
-                android:id="@+id/containerStocks"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="ENDEKSLER"
-                android:textSize="12sp"
-                android:textColor="#AAAAAA"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="8dp" />
-            <LinearLayout
-                android:id="@+id/containerIndices"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="FOREX"
-                android:textSize="12sp"
-                android:textColor="#AAAAAA"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="8dp" />
-            <LinearLayout
-                android:id="@+id/containerForex"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="EMTİALAR"
-                android:textSize="12sp"
-                android:textColor="#AAAAAA"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="8dp" />
-
-            <LinearLayout
-                android:id="@+id/containerCommodities"
+                android:id="@+id/containerAllMarkets"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:layout_marginBottom="20dp" />
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="40dp" />
 
         </LinearLayout>
     </ScrollView>
