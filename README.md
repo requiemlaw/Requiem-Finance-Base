@@ -1,11 +1,18 @@
 # Requiem Finance Base
 
+![Version](https://img.shields.io/badge/version-v1.0.0--stable-brightgreen)
+![Platform](https://img.shields.io/badge/platform-Android-blue)
+
+## Overview
+
 Requiem Finance Base is a minimalist market terminal developed for efficient tracking of primary financial assets. The project focuses on providing a centralized, low-latency dashboard for monitoring specific equity, stocks, cryptocurrency, and commodity markets.
 
-## Purpose
-The primary purpose of this terminal is to bring together real-time market data from multiple sources into a single, simplified interface. It is designed for active monitoring and pre-defined price alerts, eliminating the overhead and complexity associated with traditional financial platforms.
-
 ## Core Functionality
+* **S&P 500 Integration**: Access a full trading universe with a search pool covering the top 500 US equities by market cap.
+* **Dynamic Category Management**: Fully customizable category headers. Users can now rename and reorder entire asset blocks (e.g., MAG-7, Crypto, Forex) via a drag-and-drop interface.
+* **Hierarchical Asset Editing**: Drill down into specific categories to sort individual tickers or remove assets from your dashboard.
+* **Quant-Focused UI**: Optimized "Amnesia Mode" for the search engine, disabling keyboard suggestions and history for a cleaner data-entry experience.
+* **Minimalist Aesthetics**: Revamped UI icons (edit/delete/drag) featuring a sharp, monochromatic design to align with professional terminal standards.
 - **Data Integration:** Implements real-time data streaming from Binance and Yahoo Finance via Retrofit.
 - **Automated Alerts:** Integrated push notification system triggered by predefined price levels.
 - **Pre-Market Analysis:** Algorithmic calculation of US pre-market movements and percentage shifts.
@@ -44,3 +51,11 @@ PROJECT: Requiem-Finance-Base
 
 "RequiemLaw."
 --------------------------------------------------
+---
+### 📱 Terminal Interface Preview
+
+<p align="center">
+  <img src="https://github.com/requiemlaw/Requiem-Finance-Base/blob/dbd401eb31558e6da7dccdb0a1ad7b2dcea64099/app/src/test/java/com/example/rartyfinancebase/RequiemTerminal1.png" width="30%" />
+  &nbsp; &nbsp; &nbsp;
+  <img src="https://github.com/requiemlaw/Requiem-Finance-Base/blob/dbd401eb31558e6da7dccdb0a1ad7b2dcea64099/app/src/test/java/com/example/rartyfinancebase/RequiemTerminal2.png" width="30%" />
+</p>
