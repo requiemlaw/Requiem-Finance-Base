@@ -94,7 +94,7 @@
                         android:layout_height="wrap_content"
                         android:text="Alarm Kur"
                         android:textAllCaps="false"
-                        android:backgroundTint="#0F172A"
+                        android:backgroundTint="#1A1C20"
                         android:textColor="#FFFFFF"
                         android:layout_marginStart="8dp" />
                 </LinearLayout>
@@ -127,7 +127,7 @@
                 android:layout_marginTop="15dp"
                 android:layout_marginBottom="10dp"
                 android:backgroundTint="#1A1C20"
-                android:text="Portföyü Düzenle (İsim / Sıralama)"
+                android:text="PORTFÖYÜ DÜZENLE (İSİM / SIRALAMA)"
                 android:textColor="#FFFFFF"
                 android:textStyle="bold" />
 
