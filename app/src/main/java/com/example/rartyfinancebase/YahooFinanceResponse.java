@@ -1,4 +1,5 @@
 package com.example.rartyfinancebase;
+
 import java.util.List;
 
 public class YahooFinanceResponse {
@@ -18,7 +19,7 @@ public class YahooFinanceResponse {
         public double regularMarketPrice;
         public double chartPreviousClose;
         public double previousClose;
-        // YENİ EKLENENLER:
+        // İSTATİSTİKLER İÇİN EKLENENLER:
         public double regularMarketDayHigh;
         public double regularMarketDayLow;
         public double fiftyTwoWeekHigh;
@@ -30,9 +31,11 @@ public class YahooFinanceResponse {
         public List<Quote> quote;
     }
 
-
-
+    // İŞTE SİHRİN GERÇEKLEŞTİĞİ YER (MUM GRAFİĞİ VERİLERİ)
     public static class Quote {
+        public List<Double> open;
+        public List<Double> high;
+        public List<Double> low;
         public List<Double> close;
     }
 }

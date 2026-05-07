@@ -1,17 +1,27 @@
 package com.example.rartyfinancebase;
 
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
+
 import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.charts.CandleStickChart;
+import com.github.mikephil.charting.data.CandleData;
+import com.github.mikephil.charting.data.CandleDataSet;
+import com.github.mikephil.charting.data.CandleEntry;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter;
 import com.github.mikephil.charting.highlight.Highlight;
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
+
+import android.widget.ImageButton;
+import android.view.View;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -26,11 +36,16 @@ import java.util.TimeZone;
 
 public class DetailActivity extends AppCompatActivity {
     private LineChart lineChart;
+    private CandleStickChart candleChart;
+    private ImageButton btnToggleChart;
+    private boolean isLineChartActive = true;
+
     private TextView detailName, detailPrice;
-    private TextView tvDayRange, tvYearRange, tvVolume; // Yeni eklenenler
+    private TextView tvDayRange, tvYearRange, tvVolume;
     private String currentSymbol, currentInterval, currentRange;
     private BinanceApi binanceApi;
     private YahooApi yahooApi;
+
     private double lastKnownPrice = 0.0;
 
     @Override
@@ -38,15 +53,31 @@ public class DetailActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detail);
 
-        // UI Bağlantıları
+        // Arayüz Bağlantıları
         lineChart = findViewById(R.id.lineChart);
+        candleChart = findViewById(R.id.candleChart);
+        btnToggleChart = findViewById(R.id.btnToggleChart);
         detailName = findViewById(R.id.detailName);
         detailPrice = findViewById(R.id.detailPrice);
-
-        // İstatistik Bağlantıları
         tvDayRange = findViewById(R.id.tvDayRange);
         tvYearRange = findViewById(R.id.tvYearRange);
         tvVolume = findViewById(R.id.tvVolume);
+
+        // Mastermind Butonu Olayı
+        btnToggleChart.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (isLineChartActive) {
+                    lineChart.setVisibility(View.GONE);
+                    candleChart.setVisibility(View.VISIBLE);
+                    isLineChartActive = false;
+                } else {
+                    candleChart.setVisibility(View.GONE);
+                    lineChart.setVisibility(View.VISIBLE);
+                    isLineChartActive = true;
+                }
+            }
+        });
 
         currentSymbol = getIntent().getStringExtra("SYMBOL");
         detailName.setText(getIntent().getStringExtra("NAME"));
@@ -58,7 +89,8 @@ public class DetailActivity extends AppCompatActivity {
         }
 
         setupApis();
-        setupChart();
+        setupLineChart();
+        setupCandleChart(); // YENİ EKLENDİ
         setupButtons();
         fetchData();
     }
@@ -68,7 +100,7 @@ public class DetailActivity extends AppCompatActivity {
         yahooApi = new Retrofit.Builder().baseUrl("https://query1.finance.yahoo.com/").addConverterFactory(GsonConverterFactory.create()).build().create(YahooApi.class);
     }
 
-    private void setupChart() {
+    private void setupLineChart() {
         lineChart.getDescription().setEnabled(false);
         lineChart.getAxisRight().setEnabled(false);
         lineChart.getXAxis().setDrawGridLines(false);
@@ -77,9 +109,35 @@ public class DetailActivity extends AppCompatActivity {
         lineChart.setNoDataText("Piyasa verisi çekiliyor...");
 
         lineChart.setOnChartValueSelectedListener(new OnChartValueSelectedListener() {
-            @Override
-            public void onValueSelected(Entry e, Highlight h) { updatePriceDisplay(e.getY()); }
+            @Override public void onValueSelected(Entry e, Highlight h) { updatePriceDisplay(e.getY()); }
             @Override public void onNothingSelected() { updatePriceDisplay(lastKnownPrice); }
+        });
+    }
+
+    private void setupCandleChart() {
+        candleChart.getDescription().setEnabled(false);
+        candleChart.getAxisRight().setEnabled(false);
+        candleChart.getXAxis().setDrawGridLines(false);
+        candleChart.getAxisLeft().setDrawGridLines(false);
+        candleChart.getLegend().setEnabled(false);
+        candleChart.setNoDataText("OHLC verisi çekiliyor...");
+
+        // YENİ: Parmağı kaydırınca fiyatın güncellenmesi (Dokunmatik Sensör)
+        candleChart.setOnChartValueSelectedListener(new OnChartValueSelectedListener() {
+            @Override
+            public void onValueSelected(Entry e, Highlight h) {
+                // Mum grafiğinde parmağın olduğu yerdeki kapanış (Close) fiyatını al
+                if (e instanceof CandleEntry) {
+                    updatePriceDisplay(((CandleEntry) e).getClose());
+                } else {
+                    updatePriceDisplay(e.getY());
+                }
+            }
+
+            @Override
+            public void onNothingSelected() {
+                updatePriceDisplay(lastKnownPrice);
+            }
         });
     }
 
@@ -92,6 +150,7 @@ public class DetailActivity extends AppCompatActivity {
 
     private void fetchData() {
         lineChart.clear();
+        candleChart.clear();
         if (currentSymbol != null && (currentSymbol.startsWith("BTC") || currentSymbol.startsWith("ETH"))) {
             fetchBinanceData();
         } else {
@@ -109,19 +168,27 @@ public class DetailActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<List<List<Object>>> call, Response<List<List<Object>>> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    List<Entry> entries = new ArrayList<>();
+                    List<Entry> lineEntries = new ArrayList<>();
+                    List<CandleEntry> candleEntries = new ArrayList<>();
                     List<Long> timestamps = new ArrayList<>();
                     try {
                         for (int i = 0; i < response.body().size(); i++) {
                             long ts = Double.valueOf(response.body().get(i).get(0).toString()).longValue() / 1000;
+                            float open = Float.parseFloat(response.body().get(i).get(1).toString());
+                            float high = Float.parseFloat(response.body().get(i).get(2).toString());
+                            float low = Float.parseFloat(response.body().get(i).get(3).toString());
                             float close = Float.parseFloat(response.body().get(i).get(4).toString());
-                            entries.add(new Entry(i, close));
+
+                            lineEntries.add(new Entry(i, close));
+                            candleEntries.add(new CandleEntry(i, high, low, open, close));
                             timestamps.add(ts);
                             if (i == response.body().size() - 1) lastKnownPrice = close;
                         }
-                        configureXAxis(timestamps);
+                        configureXAxis(lineChart, timestamps);
+                        configureXAxis(candleChart, timestamps);
                         updatePriceDisplay(lastKnownPrice);
-                        updateChart(entries);
+                        updateLineChart(lineEntries);
+                        updateCandleChart(candleEntries);
                     } catch (Exception e) { Log.e("BINANCE_PARSE", e.getMessage()); }
                 }
             }
@@ -136,26 +203,41 @@ public class DetailActivity extends AppCompatActivity {
                 try {
                     if (response.isSuccessful() && response.body() != null && response.body().chart.result != null) {
                         YahooFinanceResponse.Result result = response.body().chart.result.get(0);
-                        List<Double> prices = result.indicators.quote.get(0).close;
+                        List<Double> closes = result.indicators.quote.get(0).close;
+                        List<Double> opens = result.indicators.quote.get(0).open;
+                        List<Double> highs = result.indicators.quote.get(0).high;
+                        List<Double> lows = result.indicators.quote.get(0).low;
                         List<Long> timestamps = result.timestamp;
 
-                        // İstatistikleri Güncelle
                         updateStats(result.meta);
 
-                        List<Entry> entries = new ArrayList<>();
-                        if (prices != null && timestamps != null) {
-                            configureXAxis(timestamps);
-                            for (int i = 0; i < prices.size(); i++) {
-                                if (prices.get(i) != null) {
-                                    entries.add(new Entry(i, prices.get(i).floatValue()));
-                                    lastKnownPrice = prices.get(i);
+                        List<Entry> lineEntries = new ArrayList<>();
+                        List<CandleEntry> candleEntries = new ArrayList<>();
+
+                        if (closes != null && timestamps != null) {
+                            configureXAxis(lineChart, timestamps);
+                            configureXAxis(candleChart, timestamps);
+
+                            for (int i = 0; i < closes.size(); i++) {
+                                // Yahoo bazen null veri atar, ondan koruyoruz
+                                if (closes.get(i) != null && opens != null && opens.get(i) != null && highs.get(i) != null && lows.get(i) != null) {
+                                    float c = closes.get(i).floatValue();
+                                    float o = opens.get(i).floatValue();
+                                    float h = highs.get(i).floatValue();
+                                    float l = lows.get(i).floatValue();
+
+                                    lineEntries.add(new Entry(i, c));
+                                    candleEntries.add(new CandleEntry(i, h, l, o, c));
+                                    lastKnownPrice = c;
                                 }
                             }
                             updatePriceDisplay(lastKnownPrice);
-                            updateChart(entries);
+                            updateLineChart(lineEntries);
+                            updateCandleChart(candleEntries);
                         }
                     } else {
                         lineChart.setNoDataText("Veri bulunamadı.");
+                        candleChart.setNoDataText("Veri bulunamadı.");
                     }
                 } catch (Exception e) { Log.e("YAHOO_PARSE", e.getMessage()); }
             }
@@ -166,19 +248,19 @@ public class DetailActivity extends AppCompatActivity {
     private void updateStats(YahooFinanceResponse.Meta meta) {
         if (meta == null) return;
         runOnUiThread(() -> {
-            tvDayRange.setText(String.format("%.2f - %.2f", meta.regularMarketDayLow, meta.regularMarketDayHigh));
-            tvYearRange.setText(String.format("%.2f - %.2f", meta.fiftyTwoWeekLow, meta.fiftyTwoWeekHigh));
+            tvDayRange.setText(String.format(Locale.US, "%.2f - %.2f", meta.regularMarketDayLow, meta.regularMarketDayHigh));
+            tvYearRange.setText(String.format(Locale.US, "%.2f - %.2f", meta.fiftyTwoWeekLow, meta.fiftyTwoWeekHigh));
             if (meta.regularMarketVolume > 0) {
                 double vol = meta.regularMarketVolume / 1_000_000.0;
-                tvVolume.setText(String.format("%.2fM", vol));
+                tvVolume.setText(String.format(Locale.US, "%.2fM", vol));
             } else {
                 tvVolume.setText("N/A");
             }
         });
     }
 
-    private void configureXAxis(List<Long> timestamps) {
-        lineChart.getXAxis().setValueFormatter(new IndexAxisValueFormatter() {
+    private void configureXAxis(com.github.mikephil.charting.charts.BarLineChartBase chart, List<Long> timestamps) {
+        chart.getXAxis().setValueFormatter(new IndexAxisValueFormatter() {
             @Override
             public String getFormattedValue(float value) {
                 int index = (int) value;
@@ -197,12 +279,12 @@ public class DetailActivity extends AppCompatActivity {
                 return "";
             }
         });
-        lineChart.getXAxis().setPosition(com.github.mikephil.charting.components.XAxis.XAxisPosition.BOTTOM);
-        lineChart.getXAxis().setLabelCount(4, true);
-        lineChart.getXAxis().setTextColor(Color.GRAY);
+        chart.getXAxis().setPosition(com.github.mikephil.charting.components.XAxis.XAxisPosition.BOTTOM);
+        chart.getXAxis().setLabelCount(4, true);
+        chart.getXAxis().setTextColor(Color.GRAY);
     }
 
-    private void updateChart(List<Entry> entries) {
+    private void updateLineChart(List<Entry> entries) {
         LineDataSet set = new LineDataSet(entries, "Fiyat");
         set.setColor(Color.parseColor("#00D06C"));
         set.setLineWidth(2.5f);
@@ -213,9 +295,33 @@ public class DetailActivity extends AppCompatActivity {
         lineChart.invalidate();
     }
 
+    private void updateCandleChart(List<CandleEntry> entries) {
+        CandleDataSet set = new CandleDataSet(entries, "Mum Fiyat");
+
+        // YENİ: Kusursuz Mum Estetiği ve Wall Street Standartları
+        set.setShadowColorSameAsCandle(true); // Fitillerin rengi gövdeyle aynı olsun
+        set.setShadowWidth(1.2f); // Fitiller daha belirgin ve jilet gibi
+
+        set.setDecreasingColor(Color.parseColor("#FF3B30")); // Düşüş Kırmızı
+        set.setDecreasingPaintStyle(Paint.Style.FILL); // Gövde içi dolu
+
+        set.setIncreasingColor(Color.parseColor("#00D06C")); // Yükseliş Senin Neon Yeşil
+        set.setIncreasingPaintStyle(Paint.Style.FILL); // Gövde içi dolu
+
+        set.setNeutralColor(Color.GRAY);
+
+        // Parmakla dokununca çıkan artı (crosshair) çizgisinin estetiği
+        set.setHighLightColor(Color.parseColor("#888888"));
+        set.setHighlightLineWidth(1f);
+        set.setDrawValues(false);
+
+        candleChart.setData(new CandleData(set));
+        candleChart.invalidate();
+    }
+
     private void updatePriceDisplay(double price) {
         String cSymbol = (currentSymbol != null && (currentSymbol.endsWith(".IS") || currentSymbol.equals("TRY=X"))) ? "₺" : "$";
         String format = (price < 100 && !currentSymbol.contains("XAU") && !currentSymbol.contains("GC=F")) ? "%.4f" : "%.2f";
-        detailPrice.setText(cSymbol + String.format(format, price));
+        detailPrice.setText(cSymbol + String.format(Locale.US, format, price));
     }
 }
