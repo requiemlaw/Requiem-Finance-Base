@@ -32,16 +32,18 @@ Requiem Finance Base is a minimalist market terminal developed for efficient tra
 ### 📱 Terminal Interface Preview
 
 <p align="center">
-  <img src="https://github.com/requiemlaw/Requiem-Finance-Base/blob/dbd401eb31558e6da7dccdb0a1ad7b2dcea64099/app/src/test/java/com/example/rartyfinancebase/RequiemTerminal1.png?raw=true" width="30%" />
-  &nbsp; &nbsp; &nbsp;
-  <img src="https://github.com/requiemlaw/Requiem-Finance-Base/blob/dbd401eb31558e6da7dccdb0a1ad7b2dcea64099/app/src/test/java/com/example/rartyfinancebase/RequiemTerminal2.png?raw=true" width="30%" />
+  <img src="https://github.com/requiemlaw/Requiem-Finance-Base/blob/dbd401eb31558e6da7dccdb0a1ad7b2dcea64099/app/src/test/java/com/example/rartyfinancebase/RequiemTerminal1.png" width="30%" />
+  &nbsp; &nbsp;
+  <img src="https://github.com/requiemlaw/Requiem-Finance-Base/blob/7ed1cd256f4625350b40ca6e54caaf619c3f297f/app/src/test/java/com/example/rartyfinancebase/RequiemLawChart.png" width="30%" />
+  &nbsp; &nbsp;
+  <img src="https://github.com/requiemlaw/Requiem-Finance-Base/blob/dbd401eb31558e6da7dccdb0a1ad7b2dcea64099/app/src/test/java/com/example/rartyfinancebase/RequiemTerminal2.png" width="30%" />
 </p>
 
 ### 📥 Download & Try it Out
 
 Experience the stable terminal environment directly on your Android device.
 
-[![Download APK](https://img.shields.io/badge/Download_APK-v1.0.0_Stable-10b981?style=for-the-badge&logo=android)](https://github.com/requiemlaw/Requiem-Finance-Base/releases/tag/v1.0.0)
+[![Download APK](https://img.shields.io/badge/Download_APK-v1.1.0_Stable-10b981?style=for-the-badge&logo=android)](https://github.com/requiemlaw/Requiem-Finance-Base/releases/tag/v1.1.0)
 
 ---
 
