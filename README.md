@@ -1,6 +1,6 @@
 # Requiem Finance Base
 
-![Version](https://img.shields.io/badge/version-v1.0.0--stable-brightgreen)
+![Version](https://img.shields.io/badge/version-v1.1.5--stable-brightgreen)
 ![Platform](https://img.shields.io/badge/platform-Android-blue)
 
 ## Overview
