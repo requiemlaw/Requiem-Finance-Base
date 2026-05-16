@@ -31,6 +31,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import android.content.SharedPreferences;
+import android.os.Looper;
+import android.widget.ImageButton;
+import android.widget.RelativeLayout;
+import androidx.appcompat.app.AppCompatDelegate;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -40,6 +45,12 @@ public class MainActivity extends AppCompatActivity {
     private EditText etAlarmLevel;
     private Button btnSetAlarm;
     private Spinner spinnerAssets;
+
+    // Dark Mode için ekliyorum
+    private ImageButton btnThemeToggle;
+    private RelativeLayout transitionOverlay;
+    private boolean isDarkMode = false;
+    private SharedPreferences prefs;
 
     // API ve Arka Plan Görevleri
     private BinanceApi binanceApi;
@@ -100,6 +111,17 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // --- MASTERMIND DOKUNUŞU: Tema kararı ekran çizilmeden ÖNCE verilir! ---
+        prefs = getSharedPreferences("RequiemPrefs", MODE_PRIVATE);
+        isDarkMode = prefs.getBoolean("isDarkMode", false);
+
+        if (isDarkMode) {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+        } else {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+        }
+        // ----------------------------------------------------------------------
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -109,6 +131,7 @@ public class MainActivity extends AppCompatActivity {
         etAlarmLevel = findViewById(R.id.etAlarmLevel);
         btnSetAlarm = findViewById(R.id.btnSetAlarm);
         spinnerAssets = findViewById(R.id.spinnerAssets);
+        btnThemeToggle = findViewById(R.id.btnThemeToggle);
 
         // Kategori Havuzunu Doldur
         if (categoryList.isEmpty()) {
@@ -124,6 +147,21 @@ public class MainActivity extends AppCompatActivity {
         requestPermission();
         setupAlarmSpinner();
         buildMarketUI();
+
+        btnThemeToggle.setOnClickListener(v -> {
+            isDarkMode = !isDarkMode;
+            prefs.edit().putBoolean("isDarkMode", isDarkMode).apply();
+
+            if (isDarkMode) {
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+            } else {
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+            }
+
+            // İşte bu komut o meşhur önizlemedeki geçişi tetikler
+            recreate();
+        });
+
 
         // Düzenleme Butonu
         Button btnEditPortfolio = findViewById(R.id.btnEditPortfolio);

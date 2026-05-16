@@ -1,8 +1,8 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
     <style name="Base.Theme.RartyFinanceBase" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <item name="android:windowBackground">#FFFFFF</item>
+        <item name="android:textColorPrimary">#000000</item>
+        <item name="android:textColorSecondary">#666666</item>
     </style>
 
     <style name="Theme.RartyFinanceBase" parent="Base.Theme.RartyFinanceBase" />
