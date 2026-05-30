@@ -37,6 +37,10 @@ import android.widget.ImageButton;
 import android.widget.RelativeLayout;
 import androidx.appcompat.app.AppCompatDelegate;
 
+// --- V2 KÖPRÜ İMPORTLARI ---
+import androidx.compose.ui.platform.ComposeView;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+
 public class MainActivity extends AppCompatActivity {
 
     // UI Bileşenleri
@@ -45,6 +49,11 @@ public class MainActivity extends AppCompatActivity {
     private EditText etAlarmLevel;
     private Button btnSetAlarm;
     private Spinner spinnerAssets;
+
+    // --- V2 SUPER-APP KÖPRÜSÜ BİLEŞENLERİ ---
+    private BottomNavigationView bottomNavigation;
+    private ComposeView composeContainer;
+    private LinearLayout terminalContainer;
 
     // Dark Mode için ekliyorum
     private ImageButton btnThemeToggle;
@@ -113,7 +122,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         // --- MASTERMIND DOKUNUŞU: Tema kararı ekran çizilmeden ÖNCE verilir! ---
         prefs = getSharedPreferences("RequiemPrefs", MODE_PRIVATE);
-        isDarkMode = prefs.getBoolean("isDarkMode", false);
+        isDarkMode = prefs.getBoolean("isDarkMode", true);
 
         if (isDarkMode) {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
@@ -133,6 +142,14 @@ public class MainActivity extends AppCompatActivity {
         spinnerAssets = findViewById(R.id.spinnerAssets);
         btnThemeToggle = findViewById(R.id.btnThemeToggle);
 
+        // --- V2 BAĞLANTILARI ---
+        terminalContainer = findViewById(R.id.terminalContainer);
+        composeContainer = findViewById(R.id.composeContainer);
+        bottomNavigation = findViewById(R.id.bottomNavigation);
+
+        int bgColor = isDarkMode ? android.graphics.Color.parseColor("#0B0E11") : android.graphics.Color.parseColor("#FFFFFF");
+        terminalContainer.setBackgroundColor(bgColor);
+        
         // Kategori Havuzunu Doldur
         if (categoryList.isEmpty()) {
             categoryList.add(new PortfolioCategory("US-STOCKS", mag7List, false));
@@ -148,6 +165,40 @@ public class MainActivity extends AppCompatActivity {
         setupAlarmSpinner();
         buildMarketUI();
 
+        // --- V2 ALT MENÜ TETİKLEYİCİSİ ---
+        bottomNavigation.setOnItemSelectedListener(item -> {
+            int itemId = item.getItemId();
+
+            if (itemId == R.id.nav_terminal) {
+                // 1. Sekme: Eski Terminal (Java) Arayüzü
+                composeContainer.setVisibility(View.GONE);
+                terminalContainer.setVisibility(View.VISIBLE);
+                return true;
+            }
+            else if (itemId == R.id.nav_depth) {
+                // 2. Sekme: Yeni Derinlik Arayüzü (Compose)
+                terminalContainer.setVisibility(View.GONE);
+                composeContainer.setVisibility(View.VISIBLE);
+
+                // Çevirmen Köprü üzerinden Kotlin motorunu ateşle (0 = Derinlik)
+                ComposeBridge.setScreen(composeContainer, 0);
+
+                return true;
+            }
+            else if (itemId == R.id.nav_portfolio) {
+                // 3. Sekme: Yeni Portföy Arayüzü (Compose)
+                terminalContainer.setVisibility(View.GONE);
+                composeContainer.setVisibility(View.VISIBLE);
+
+                // Çevirmen Köprü üzerinden Kotlin motorunu ateşle (1 = Portföy)
+                ComposeBridge.setScreen(composeContainer, 1);
+
+                return true;
+            }
+
+            return false;
+        });
+
         btnThemeToggle.setOnClickListener(v -> {
             isDarkMode = !isDarkMode;
             prefs.edit().putBoolean("isDarkMode", isDarkMode).apply();
@@ -161,7 +212,6 @@ public class MainActivity extends AppCompatActivity {
             // İşte bu komut o meşhur önizlemedeki geçişi tetikler
             recreate();
         });
-
 
         // Düzenleme Butonu
         Button btnEditPortfolio = findViewById(R.id.btnEditPortfolio);
@@ -177,139 +227,7 @@ public class MainActivity extends AppCompatActivity {
                 "AAPL - Apple Inc.", "MSFT - Microsoft", "NVDA - Nvidia Corp.", "GOOGL - Alphabet (Class A)",
                 "GOOG - Alphabet (Class C)", "AMZN - Amazon", "META - Meta Platforms", "BRK.B - Berkshire Hathaway",
                 "LLY - Eli Lilly", "AVGO - Broadcom", "TSLA - Tesla", "JPM - JPMorgan Chase", "WMT - Walmart",
-                "UNH - UnitedHealth Group", "V - Visa Inc.", "XOM - Exxon Mobil", "MA - Mastercard", "JNJ - Johnson & Johnson",
-                "PG - Procter & Gamble", "HD - Home Depot", "COST - Costco", "MRK - Merck & Co.", "ABBV - AbbVie",
-                "CRM - Salesforce", "AMD - Advanced Micro Devices", "CVX - Chevron", "NFLX - Netflix",
-                "KO - Coca-Cola", "PEP - PepsiCo", "BAC - Bank of America", "TMO - Thermo Fisher Scientific",
-                "LIN - Linde plc", "MCD - McDonald's", "DIS - Walt Disney", "ADBE - Adobe Inc.", "CSCO - Cisco Systems",
-                "ABT - Abbott Laboratories", "INTU - Intuit", "QCOM - Qualcomm", "IBM - International Business Machines",
-                "CMCSA - Comcast", "CAT - Caterpillar", "VZ - Verizon", "PFE - Pfizer", "BA - Boeing",
-                "INTC - Intel", "NKE - Nike", "UBER - Uber Technologies", "PLTR - Palantir Technologies",
-                "COIN - Coinbase", "MSTR - MicroStrategy", "SMCI - Super Micro Computer", "NOW - ServiceNow",
-                "AMAT - Applied Materials", "TXN - Texas Instruments", "GE - General Electric", "ISRG - Intuitive Surgical",
-                "PM - Philip Morris International", "AMGN - Amgen", "COP - ConocoPhillips", "HON - Honeywell",
-                "UNP - Union Pacific", "SYK - Stryker Corp.", "SPGI - S&P Global", "AXP - American Express",
-                "LMT - Lockheed Martin", "RTX - RTX Corporation", "BKNG - Booking Holdings", "T - AT&T",
-                "PGR - Progressive Corp.", "MDT - Medtronic", "VRTX - Vertex Pharmaceuticals", "BSX - Boston Scientific",
-                "GS - Goldman Sachs", "C - Citigroup", "MS - Morgan Stanley", "BLK - BlackRock", "SCHW - Charles Schwab",
-                "CB - Chubb Limited", "MMC - Marsh & McLennan", "FI - Fiserv", "CVS - CVS Health", "CI - Cigna",
-                "ELV - Elevance Health", "REGN - Regeneron Pharmaceuticals", "VLO - Valero Energy", "MPC - Marathon Petroleum",
-                "PSX - Phillips 66", "SLB - Schlumberger", "EOG - EOG Resources", "PXD - Pioneer Natural Resources",
-                "OXY - Occidental Petroleum", "FCX - Freeport-McMoRan", "NEM - Newmont", "APD - Air Products",
-                "ECL - Ecolab", "SHW - Sherwin-Williams", "CTVA - Corteva", "NUE - Nucor", "NEE - NextEra Energy",
-                "DUK - Duke Energy", "SO - Southern Company", "SRE - Sempra", "AEP - American Electric Power",
-                "D - Dominion Energy", "EXC - Exelon", "WM - Waste Management", "RSG - Republic Services",
-                "CSX - CSX Corp.", "NSC - Norfolk Southern", "FDX - FedEx", "UPS - United Parcel Service",
-                "DAL - Delta Air Lines", "UAL - United Airlines", "LUV - Southwest Airlines", "DE - Deere & Company",
-                "PCAR - PACCAR", "EMR - Emerson Electric", "ETN - Eaton", "PH - Parker-Hannifin", "TT - Trane Technologies",
-                "CARR - Carrier Global", "JCI - Johnson Controls", "IR - Ingersoll Rand", "ROK - Rockwell Automation",
-                "A - Agilent Technologies", "ILMN - Illumina", "IQV - IQVIA", "MTD - Mettler-Toledo", "TMO - Thermo Fisher",
-                "WAT - Waters Corp.", "ZTS - Zoetis", "IDXX - IDEXX Laboratories", "DHR - Danaher", "BDX - Becton Dickinson",
-                "EW - Edwards Lifesciences", "BSX - Boston Scientific", "ALGN - Align Technology", "RMD - ResMed",
-                "STE - STERIS", "GILD - Gilead Sciences", "BIIB - Biogen", "SGEN - Seagen", "MRNA - Moderna",
-                "INCY - Incyte", "VRTX - Vertex", "REGN - Regeneron", "BMY - Bristol-Myers Squibb", "SNY - Sanofi",
-                "GSK - GSK plc", "NVS - Novartis", "AZN - AstraZeneca", "TTE - TotalEnergies", "BP - BP plc",
-                "SHEL - Shell plc", "EQNR - Equinor", "ENB - Enbridge", "TRP - TC Energy", "CNQ - Canadian Natural",
-                "SU - Suncor Energy", "BNS - Bank of Nova Scotia", "BMO - Bank of Montreal", "RY - Royal Bank of Canada",
-                "TD - Toronto-Dominion", "CM - Canadian Imperial", "BAM - Brookfield Asset", "BX - Blackstone",
-                "KKR - KKR & Co.", "APO - Apollo Global", "CG - Carlyle Group", "ARES - Ares Management",
-                "O - Realty Income", "SPG - Simon Property Group", "PLD - Prologis", "AMT - American Tower",
-                "CCI - Crown Castle", "EQIX - Equinix", "DLR - Digital Realty", "PSA - Public Storage",
-                "EXR - Extra Space", "AVB - AvalonBay", "EQR - Equity Residential", "INVH - Invitation Homes",
-                "MAA - Mid-America", "CPT - Camden Property", "SUI - Sun Communities", "ELS - Equity Lifestyle",
-                "WELL - Welltower", "VTR - Ventas", "PEAK - Healthpeak", "ARE - Alexandria Real",
-                "BXP - Boston Properties", "SLG - SL Green", "VNO - Vornado", "KIM - Kimco", "REG - Regency Centers",
-                "FRT - Federal Realty", "NEM - Newmont", "GOLD - Barrick Gold", "AEM - Agnico Eagle",
-                "KGC - Kinross Gold", "WPM - Wheaton Precious", "FNV - Franco-Nevada", "RGLD - Royal Gold",
-                "ALB - Albemarle", "SQM - Sociedad Quimica", "LTHM - Livent", "LAC - Lithium Americas",
-                "RIO - Rio Tinto", "BHP - BHP Group", "VALE - Vale S.A.", "CLF - Cleveland-Cliffs",
-                "X - United States Steel", "STLD - Steel Dynamics", "NUE - Nucor", "RS - Reliance Steel",
-                "AA - Alcoa", "CENX - Century Aluminum", "FCX - Freeport-McMoRan", "SCCO - Southern Copper",
-                "TECK - Teck Resources", "AG - First Majestic", "PAAS - Pan American", "HL - Hecla Mining",
-                "CDE - Coeur Mining", "MTA - Metalla Royalty", "OR - Osisko Gold", "SAND - Sandstorm Gold",
-                "MUX - McEwen Mining", "IAG - IAMGOLD", "NGD - New Gold", "EGO - Eldorado Gold",
-                "EQX - Equinox Gold", "GFI - Gold Fields", "HMY - Harmony Gold", "AU - AngloGold",
-                "SBSW - Sibanye Stillwater", "IMPUY - Impala Platinum", "ANGPY - Anglo American Platinum",
-                "AMKBY - A.P. Moller-Maersk", "ZIM - ZIM Integrated", "DAC - Danaos", "SBLK - Star Bulk",
-                "GOGL - Golden Ocean", "SFL - SFL Corp", "FRO - Frontline", "STNG - Scorpio Tankers",
-                "INSW - International Seaways", "TNK - Teekay Tankers", "DHT - DHT Holdings",
-                "EURN - Euronav", "TRMD - TORM", "NAT - Nordic American", "GNK - Genco Shipping",
-                "EGLE - Eagle Bulk", "CPLP - Capital Product", "CMRE - Costamare", "ATCO - Atlas Corp",
-                "MPLX - MPLX LP", "EPD - Enterprise Products", "ET - Energy Transfer", "WMB - Williams Companies",
-                "OKE - ONEOK", "KMI - Kinder Morgan", "TRGP - Targa Resources", "PAA - Plains All American",
-                "MMP - Magellan Midstream", "WES - Western Midstream", "CQP - Cheniere Energy",
-                "LNG - Cheniere Energy Inc", "SRE - Sempra", "SWX - Southwest Gas", "NJR - New Jersey Resources",
-                "SJI - South Jersey Industries", "CPK - Chesapeake Utilities", "ATO - Atmos Energy",
-                "NI - NiSource", "UGI - UGI Corp", "OGE - OGE Energy", "PNW - Pinnacle West",
-                "IDA - IDACORP", "AVA - Avista", "ALE - ALLETE", "MGEE - MGE Energy",
-                "POR - Portland General", "NWN - Northwest Natural", "SR - Spire", "BKH - Black Hills",
-                "MDU - MDU Resources", "CNP - CenterPoint Energy", "CMS - CMS Energy", "DTE - DTE Energy",
-                "WEC - WEC Energy", "LNT - Alliant Energy", "XEL - Xcel Energy", "AEE - Ameren",
-                "ES - Eversource", "FE - FirstEnergy", "PEG - Public Service", "ED - Consolidated Edison",
-                "AWK - American Water", "WTRG - Essential Utilities", "CWT - California Water",
-                "SJW - SJW Group", "MSEX - Middlesex Water", "YORW - York Water", "PRK - Park National",
-                "CBU - Community Bank", "NBTB - NBT Bancorp", "TMP - Tompkins Financial",
-                "FNB - F.N.B. Corp", "FULT - Fulton Financial", "WSFS - WSFS Financial",
-                "UBSI - United Bankshares", "CFR - Cullen/Frost", "TCBI - Texas Capital",
-                "CMA - Comerica", "ZION - Zions Bancorp", "KEY - KeyCorp", "FITB - Fifth Third",
-                "HBAN - Huntington Bancshares", "CFG - Citizens Financial", "RF - Regions Financial",
-                "TFC - Truist Financial", "PNC - PNC Financial", "USB - U.S. Bancorp",
-                "WFC - Wells Fargo", "BAC - Bank of America", "JPM - JPMorgan Chase",
-                "C - Citigroup", "MS - Morgan Stanley", "GS - Goldman Sachs",
-                "SCHW - Charles Schwab", "BLK - BlackRock", "STT - State Street",
-                "BK - Bank of New York Mellon", "NTRS - Northern Trust", "AMP - Ameriprise",
-                "RJF - Raymond James", "LPLA - LPL Financial", "SF - Stifel Financial",
-                "HLI - Houlihan Lokey", "MC - Moelis", "PJT - PJT Partners",
-                "EVR - Evercore", "LAZ - Lazard", "CG - Carlyle Group",
-                "APO - Apollo Global", "KKR - KKR & Co.", "BX - Blackstone",
-                "BAM - Brookfield Asset", "ARES - Ares Management", "OAK - Oaktree",
-                "BEN - Franklin Resources", "IVZ - Invesco", "TROW - T. Rowe Price",
-                "JHG - Janus Henderson", "AMG - Affiliated Managers", "AB - AllianceBernstein",
-                "FCNCA - First Citizens", "SIVB - SVB Financial", "SBNY - Signature Bank",
-                "FRC - First Republic", "PACW - PacWest Bancorp", "WAL - Western Alliance",
-                "EWBC - East West Bancorp", "PINC - Premier Inc.",
-                "IQV - IQVIA Holdings", "PRAH - PRA Health Sciences", "SYNH - Syneos Health",
-                "ICLR - ICON plc", "MEDP - Medpace Holdings", "CRL - Charles River Labs",
-                "WST - West Pharmaceutical", "BIO - Bio-Rad Laboratories", "TMO - Thermo Fisher",
-                "DHR - Danaher Corp", "A - Agilent Technologies", "WAT - Waters Corp",
-                "PKI - PerkinElmer", "MTD - Mettler-Toledo", "ILMN - Illumina",
-                "PACB - Pacific Biosciences", "TXG - 10x Genomics", "NSTG - NanoString Technologies",
-                "FLDM - Fluidigm Corp", "QDEL - Quidel Corp", "HOLX - Hologic",
-                "DXCM - DexCom", "PODD - Insulet", "TNDM - Tandem Diabetes",
-                "MDT - Medtronic", "SYK - Stryker", "BSX - Boston Scientific",
-                "ZBH - Zimmer Biomet", "ABT - Abbott Labs", "JNJ - Johnson & Johnson",
-                "PFE - Pfizer", "MRK - Merck & Co.", "LLY - Eli Lilly",
-                "BMY - Bristol-Myers Squibb", "ABBV - AbbVie", "AMGN - Amgen",
-                "GILD - Gilead Sciences", "BIIB - Biogen", "REGN - Regeneron",
-                "VRTX - Vertex Pharmaceuticals", "INCY - Incyte", "ALXN - Alexion Pharmaceuticals",
-                "SGEN - Seagen", "EXEL - Exelixis", "HALO - Halozyme Therapeutics",
-                "BMRN - BioMarin", "SRPT - Sarepta Therapeutics", "PTCT - PTC Therapeutics",
-                "UTHR - United Therapeutics", "FOLD - Amicus Therapeutics", "RARE - Ultragenyx",
-                "ALNY - Alnylam", "IONS - Ionis Pharmaceuticals", "CRSP - CRISPR Therapeutics",
-                "NTLA - Intellia Therapeutics", "EDIT - Editas Medicine", "BEAM - Beam Therapeutics",
-                "FATE - Fate Therapeutics", "ALLO - Allogene Therapeutics", "CABA - Cabaletta Bio",
-                "PRLD - Prelude Therapeutics", "KROS - Keros Therapeutics", "RLAY - Relay Therapeutics",
-                "KRTX - Karuna Therapeutics", "CERE - Cerevel Therapeutics", "AXSM - Axsome Therapeutics",
-                "ITCI - Intra-Cellular Therapies", "CYTK - Cytokinetics", "MYOV - Myovant Sciences",
-                "ESPR - Esperion Therapeutics", "AKRO - Akero Therapeutics", "MDGL - Madrigal Pharmaceuticals",
-                "VKTX - Viking Therapeutics", "NGM - NGM Biopharmaceuticals", "ALT - Altimmune",
-                "ARNA - Arena Pharmaceuticals", "GLPG - Galapagos NV", "ARGX - argenx SE",
-                "ASND - Ascendis Pharma", "GWPH - GW Pharmaceuticals", "ZLAB - Zai Lab",
-                "BGNE - BeiGene", "INMD - InMode", "NUVA - NuVasive", "GMED - Globus Medical",
-                "PEN - Penumbra", "SIBN - Sientra", "EBS - Emergent BioSolutions",
-                "KNSA - Kiniksa Pharmaceuticals", "RXRX - Recursion Pharmaceuticals", "ABSI - Absci",
-                "DNA - Ginkgo Bioworks", "ZY - Zymergen", "TWST - Twist Bioscience",
-                "BLI - Berkeley Lights", "QSI - Quantum-Si", "MAXN - Maxeon Solar",
-                "RUN - Sunrun", "NOVA - Sunnova", "SPWR - SunPower",
-                "ENPH - Enphase Energy", "SEDG - SolarEdge", "FSLR - First Solar",
-                "CSIQ - Canadian Solar", "JKS - JinkoSolar", "DQ - Daqo New Energy",
-                "PLUG - Plug Power", "FCEL - FuelCell Energy", "BLDP - Ballard Power",
-                "BE - Bloom Energy", "QS - QuantumScape", "ENVX - Enovix",
-                "SLDP - Solid Power", "MVST - Microvast", "CHPT - ChargePoint",
-                "BLNK - Blink Charging", "EVGO - EVgo", "VLTA - Volta",
-                "WBX - Wallbox", "STEM - Stem", "FLNC - Fluence Energy",
-                "NEP - NextEra Energy Partners", "CWEN - Clearway Energy", "HASI - Hannon Armstrong",
-                "AY - Atlantica Sustainable", "BEP - Brookfield Renewable", "PEGI - Pattern Energy"
+                "BEN - Franklin Resources", "IVZ - Invesco", "TROW - T. Rowe Price", "PEGI - Pattern Energy"
         };
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, usStocks);

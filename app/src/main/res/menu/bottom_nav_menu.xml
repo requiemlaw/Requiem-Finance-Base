@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_terminal"
+        android:icon="@android:drawable/ic_menu_sort_by_size"
+        android:title="Terminal" />
+    <item
+        android:id="@+id/nav_depth"
+        android:icon="@android:drawable/ic_menu_view"
+        android:title="Derinlik" />
+    <item
+        android:id="@+id/nav_portfolio"
+        android:icon="@android:drawable/ic_menu_myplaces"
+        android:title="Portföy" />
+</menu>

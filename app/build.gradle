@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
+    id 'org.jetbrains.kotlin.plugin.compose' version '2.0.0'
 }
 
 android {
@@ -30,6 +31,13 @@ android {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
     }
+
+    // ---- REQUIEM V2 MOTOR AYARLARI ----
+    buildFeatures {
+        compose true
+        viewBinding true
+    }
+    // composeOptions bloğu Kotlin 2.0 gereği tamamen kaldırıldı.
 }
 
 dependencies {
@@ -37,12 +45,23 @@ dependencies {
     implementation libs.appcompat
     implementation libs.constraintlayout
     implementation libs.material
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.8.0'
     testImplementation libs.junit
     androidTestImplementation libs.espresso.core
     androidTestImplementation libs.ext.junit
+
     // API İstekleri için Retrofit
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     // Gelen JSON verisini Java objesine çevirmek için Gson
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
+
+    // ---- REQUIEM V2 COMPOSE KÜTÜPHANELERİ ----
+    def composeBom = platform('androidx.compose:compose-bom:2024.04.01')
+    implementation composeBom
+    implementation 'androidx.compose.ui:ui'
+    implementation 'androidx.compose.material3:material3'
+    implementation 'androidx.compose.ui:ui-tooling-preview'
+    // Yeni tasarımı eski XML içine gömmek için gereken stratejik köprü
+    implementation 'androidx.activity:activity-compose:1.9.0'
 }

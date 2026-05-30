@@ -50,12 +50,15 @@ public class DetailActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+        getWindow().getDecorView().setBackgroundColor(Color.parseColor("#0B0E11"));
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detail);
 
-        // Arayüz Bağlantıları
         lineChart = findViewById(R.id.lineChart);
         candleChart = findViewById(R.id.candleChart);
+        lineChart.setBackgroundColor(Color.parseColor("#0B0E11"));
+        candleChart.setBackgroundColor(Color.parseColor("#0B0E11"));
         btnToggleChart = findViewById(R.id.btnToggleChart);
         detailName = findViewById(R.id.detailName);
         detailPrice = findViewById(R.id.detailPrice);
@@ -101,6 +104,8 @@ public class DetailActivity extends AppCompatActivity {
     }
 
     private void setupLineChart() {
+        lineChart.getAxisLeft().setTextColor(Color.WHITE);
+        lineChart.getXAxis().setTextColor(Color.WHITE);
         lineChart.getDescription().setEnabled(false);
         lineChart.getAxisRight().setEnabled(false);
         lineChart.getXAxis().setDrawGridLines(false);
@@ -115,6 +120,8 @@ public class DetailActivity extends AppCompatActivity {
     }
 
     private void setupCandleChart() {
+        candleChart.getAxisLeft().setTextColor(Color.WHITE);
+        candleChart.getXAxis().setTextColor(Color.WHITE);   
         candleChart.getDescription().setEnabled(false);
         candleChart.getAxisRight().setEnabled(false);
         candleChart.getXAxis().setDrawGridLines(false);
