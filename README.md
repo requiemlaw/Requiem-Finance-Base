@@ -1,6 +1,6 @@
 # Requiem Finance Base
 
-![Version](https://img.shields.io/badge/version-v1.1.5--stable-brightgreen)
+![Version](https://img.shields.io/badge/version-v2.1.0--beta-brightgreen)
 ![Platform](https://img.shields.io/badge/platform-Android-blue)
 
 ## Overview
@@ -43,7 +43,7 @@ Requiem Finance Base is a minimalist market terminal developed for efficient tra
 
 Experience the stable terminal environment directly on your Android device.
 
-[![Download APK](https://img.shields.io/badge/Download_APK-v1.1.5_Stable-10b981?style=for-the-badge&logo=android)](https://github.com/requiemlaw/Requiem-Finance-Base/releases/tag/v1.1.5)
+[![Download APK](https://img.shields.io/badge/Download_APK-v2.1.0_Beta-10b981?style=for-the-badge&logo=android)](https://github.com/requiemlaw/Requiem-Finance-Base/releases/tag/v2.1.0-beta)
 
 ---
 
