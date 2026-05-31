@@ -17,7 +17,7 @@ public class EditPortfolioActivity extends AppCompatActivity {
         RecyclerView rvEditPortfolio = findViewById(R.id.rvEditPortfolio);
         Button btnSavePortfolio = findViewById(R.id.btnSavePortfolio);
 
-        // Adapter'a MainActivity'deki Kategori Listemizi (Referans olarak) veriyoruz
+        // Adapter'a MainActivity'deki Kategori Listemizi referans olarak veriyoruz.
         PortfolioAdapter adapter = new PortfolioAdapter(MainActivity.categoryList, this);
         rvEditPortfolio.setLayoutManager(new LinearLayoutManager(this));
         rvEditPortfolio.setAdapter(adapter);

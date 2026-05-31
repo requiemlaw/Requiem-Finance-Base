@@ -31,7 +31,7 @@ public class YahooFinanceResponse {
         public List<Quote> quote;
     }
 
-    // İŞTE SİHRİN GERÇEKLEŞTİĞİ YER (MUM GRAFİĞİ VERİLERİ)
+    // MUM GRAFİĞİ VERİLERİ
     public static class Quote {
         public List<Double> open;
         public List<Double> high;

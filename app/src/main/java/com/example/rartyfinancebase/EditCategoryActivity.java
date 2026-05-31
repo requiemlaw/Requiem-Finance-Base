@@ -14,14 +14,14 @@ public class EditCategoryActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // Arayüz olarak kategorilerin arayüzünü (activity_edit_portfolio) kullanmaya devam ediyoruz
+        // Arayüzden bağımsız yeni activity_edit_portfolio layout'u
         setContentView(R.layout.activity_edit_portfolio);
 
-        // Hangi kategoriye tıklandığını al
+
         int catIndex = getIntent().getIntExtra("CATEGORY_INDEX", -1);
         if (catIndex == -1) { finish(); return; }
 
-        // O kategoriyi ve içindeki hisseleri bul
+
         MainActivity.PortfolioCategory category = MainActivity.categoryList.get(catIndex);
         List<String[]> assets = category.assets;
 
@@ -29,12 +29,12 @@ public class EditCategoryActivity extends AppCompatActivity {
         Button btnSavePortfolio = findViewById(R.id.btnSavePortfolio);
         btnSavePortfolio.setText(category.name + " KAYDET VE ÇIK"); // Buton ismini kategoriye özel yap
 
-        // Hisseleri listelemek için yeni yazdığımız adapter'ı bağlıyoruz
+        // Hisseleri listelemek için adapter bağlantısı
         AssetEditAdapter adapter = new AssetEditAdapter(assets);
         rvEditPortfolio.setLayoutManager(new LinearLayoutManager(this));
         rvEditPortfolio.setAdapter(adapter);
 
-        // Hem Sürükle (Yukarı/Aşağı) Hem Sil (Sağa/Sola Kaydır)
+        // Hem Sürükle (Yukarı/Aşağı) Hem Sil (Sağa/Sola Kaydır) sağlayan kod kısmı (DEĞİŞTİRME)
         ItemTouchHelper helper = new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP | ItemTouchHelper.DOWN, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
             @Override
             public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {

@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:background="?android:attr/windowBackground">
 
-    <!-- YENİ: ALT NAVİGASYON BARI (SUPER-APP KÖPRÜSÜ) -->
+    <!-- ALT NAVİGASYON BARI (V2.0 İÇİN) -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigation"
         android:layout_width="match_parent"
@@ -22,7 +22,7 @@
         android:layout_height="match_parent"
         android:layout_above="@id/bottomNavigation">
 
-        <!-- 1. ESKİ JAVA ARAYÜZÜ (TERMINAL) -->
+        <!-- 1. ESKİ JAVA ARAYÜZÜ (V1.0 TERMINAL) -->
         <LinearLayout
             android:id="@+id/terminalContainer"
             android:layout_width="match_parent"

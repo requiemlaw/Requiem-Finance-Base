@@ -17,7 +17,7 @@ data class OrderBook(val bids: List<OrderBookItem>, val asks: List<OrderBookItem
 data class Candle(val open: Float, val high: Float, val low: Float, val close: Float)
 data class PortfolioAsset(val symbol: String, val amount: Double, val buyPrice: Double, val category: String)
 
-// --- TERMINAL BEYNİ (Canlı WebSocket & Grafik Motoru) ---
+// --- TERMINAL ANA YAPISI (Canlı WebSocket & Grafik Motoru) ---
 class TerminalViewModel : ViewModel() {
     private val _orderBookState = MutableStateFlow<OrderBook?>(null)
     val orderBookState: StateFlow<OrderBook?> = _orderBookState
@@ -41,7 +41,7 @@ class TerminalViewModel : ViewModel() {
         .build()
 
     init {
-        // ViewModel ilk oluştuğunda doğrudan Binance verilerine saldırıyoruz
+
         connectBinanceWebSocket()
         fetchHistoricalKlines("15m")
     }
@@ -104,7 +104,7 @@ class TerminalViewModel : ViewModel() {
                     .build()
                 val response = client.newCall(request).execute()
 
-                // İŞTE DÜZELTİLEN SATIR BURASI: body() olarak çağrıldı
+
                 val responseBody = response.body()?.string()
 
                 if (responseBody != null) {

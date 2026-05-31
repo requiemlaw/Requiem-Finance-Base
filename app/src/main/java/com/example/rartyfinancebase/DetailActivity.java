@@ -92,20 +92,19 @@ public class DetailActivity extends AppCompatActivity {
         lineChart.setBackgroundColor(Color.TRANSPARENT);
         candleChart.setBackgroundColor(Color.TRANSPARENT);
 
-        // --- GRİLİKLERİ VE ÇUBUKLARI SÖKÜYORUZ ---
         LinearLayout statsContainer = findViewById(R.id.statsContainer);
         if(statsContainer != null) {
-            statsContainer.setBackgroundColor(bgColor); // Siyah ise siyah, beyaz ise beyaz
+            statsContainer.setBackgroundColor(bgColor);
             statsContainer.setElevation(0);
         }
 
-        // 2. ScrollView'u zifiri siyahla aynı yap
+
         android.widget.HorizontalScrollView hsv = findViewById(R.id.btnScrollView);
         if (hsv != null) {
             hsv.setBackgroundColor(bgColor);
         }
 
-        // 3. Butonları arka planla birleştiriyoruz
+
         Button[] buttons = { findViewById(R.id.btn15m), findViewById(R.id.btn1d), findViewById(R.id.btn1w), findViewById(R.id.btn1M) };
         for(Button b : buttons) {
             if(b != null) {
@@ -116,7 +115,7 @@ public class DetailActivity extends AppCompatActivity {
             }
         }
 
-        // ScrollView arka planını da zifiri siyah yap
+
         View container = (View) findViewById(R.id.btn15m).getParent();
         if (container != null) {
             ((View) container.getParent()).setBackgroundColor(bgColor);

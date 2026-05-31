@@ -49,7 +49,7 @@ public class PortfolioAdapter extends RecyclerView.Adapter<PortfolioAdapter.View
             builder.show();
         });
 
-        // KANKA YENİ EKLENEN KISIM BURASI: Satıra tıklayınca içine gir
+        //  Satıra tıklayınca içine gir
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(context, EditCategoryActivity.class);
             intent.putExtra("CATEGORY_INDEX", position); // Hangi kategoriye tıklandığını yolluyoruz

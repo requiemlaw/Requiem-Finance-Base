@@ -5,8 +5,7 @@ import android.content.Context;
 public class StocksList {
 
     public static String[] getS_P500List(Context context) {
-        // Kanka, o devasa S&P 500 listesini MainActivity'yi kirletmemesi için buraya taşıdık.
-        // İşte o koca listeyi buraya yapıştıracaksın kanka!
+        // Canlı ABD borsasında en büyük market-cap'li 500 hisse listesi. Son güncelleme: 31.05.2026 03:49 ek not: bu liste zaman içinde nadirde olsa değişebilir bu tarz durumlarda listenin güncellenmesi gerekir, evet- bir yerden çekilebilecek bir veri değildir. bu tarz işlemler Chicago Merchantile Exchange'de saklı olduğundan canlı veri kaynağı bulunmamaktadır, beyana dayalıdır.
         return new String[] {
                 "AAPL - Apple Inc.", "MSFT - Microsoft", "NVDA - Nvidia Corp.", "GOOGL - Alphabet (Class A)",
                 "GOOG - Alphabet (Class C)", "AMZN - Amazon", "META - Meta Platforms", "BRK.B - Berkshire Hathaway",

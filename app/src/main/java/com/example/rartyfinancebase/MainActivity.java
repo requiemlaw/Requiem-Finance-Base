@@ -36,7 +36,7 @@ import android.widget.ImageButton;
 import android.widget.RelativeLayout;
 import androidx.appcompat.app.AppCompatDelegate;
 
-// --- V2 KÖPRÜ İMPORTLARI ---
+// --- V2.0 için köprü importları ---
 import androidx.compose.ui.platform.ComposeView;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
@@ -49,7 +49,7 @@ public class MainActivity extends AppCompatActivity {
     private Button btnSetAlarm;
     private Spinner spinnerAssets;
 
-    // --- V2 SUPER-APP KÖPRÜSÜ BİLEŞENLERİ ---
+    // --- V2.0 KÖPRÜ BİLEŞENLERİ ---
     private BottomNavigationView bottomNavigation;
     private ComposeView composeContainer;
     private LinearLayout terminalContainer;
@@ -68,7 +68,7 @@ public class MainActivity extends AppCompatActivity {
     private final String CHANNEL_ID = "rarty_alerts";
     private List<Alarm> alarmList = new ArrayList<>();
 
-    // --- YENİ DİNAMİK KATEGORİ SİSTEMİ ---
+    // --- YENİ KATEGORİ SİSTEMİ ---
     public static class PortfolioCategory {
         public String name;
         public List<String[]> assets;
@@ -120,7 +120,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         prefs = getSharedPreferences("RequiemPrefs", MODE_PRIVATE);
 
-        // --- VARSAYILAN OLARAK KOYU MOD ---
+        // --- VARSAYILAN OLARAK KOYU MOD (başlangıçta app koyu olarak başlayacak)---
         isDarkMode = prefs.getBoolean("isDarkMode", true);
 
         if (isDarkMode) {
@@ -132,7 +132,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // --- İŞTE SENİN KODDA SİLİNEN O EKSİK STARTCOLOR KISMI BURASI KANKA ---
+
         // ANDROID 15 (API 35) KÖK ARKA PLAN BAŞLANGIÇ AYARI
         int startColor = isDarkMode ? android.graphics.Color.parseColor("#0B0E11") : android.graphics.Color.WHITE;
         getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
@@ -157,7 +157,6 @@ public class MainActivity extends AppCompatActivity {
         composeContainer = findViewById(R.id.composeContainer);
         bottomNavigation = findViewById(R.id.bottomNavigation);
 
-        // startColor artık yukarıda tanımlı olduğu için buralar hata vermeyecek!
         terminalContainer.setBackgroundColor(startColor);
         bottomNavigation.setBackgroundColor(startColor);
 
@@ -169,14 +168,13 @@ public class MainActivity extends AppCompatActivity {
             categoryList.add(new PortfolioCategory("EMTİALAR", commoditiesList, false));
         }
 
-        // --- BU API'LERİ KURMA VE UI OLUŞTURMA KISMI ÖNCEKİ TURDA UÇMUŞTU, BU ÇOK ÖNEMLİ ---
         setupApis();
         createNotificationChannel();
         requestPermission();
         setupAlarmSpinner();
         buildMarketUI();
 
-        // --- V2 ALT MENÜ TETİKLEYİCİSİ VE ANDROID 15 KESİN RENK FİXİ ---
+        // --- V2.0 ALT MENÜ TETİKLEYİCİSİ VE ANDROID 15 KESİN RENK FİXİ ---
         bottomNavigation.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();
             androidx.core.view.WindowInsetsControllerCompat navController = new androidx.core.view.WindowInsetsControllerCompat(getWindow(), getWindow().getDecorView());
@@ -237,11 +235,10 @@ public class MainActivity extends AppCompatActivity {
         // --- ARAMA ÇUBUĞU VE S&P 500 HAVUZU ---
         AutoCompleteTextView searchTickerInput = findViewById(R.id.searchTickerInput);
 
-        // --- DOKUNUŞ: BEYAZ TEMADA BEMBEYAZ KALMA SORUNUNU ÇÖZEN FİX BURASI ---
+        // --- remake2.0 commiti için: BEYAZ TEMADA BEMBEYAZ KALMA SORUNUNU ÇÖZEN FİX BURASI ---
         int searchTextColor = isDarkMode ? android.graphics.Color.WHITE : android.graphics.Color.BLACK;
         int searchHintColor = isDarkMode ? 0x80FFFFFF : android.graphics.Color.GRAY;
 
-        // Vurgu: Buradaki renk aydınlık temada arama çubuğunun arkasını gri yapar ki yazı görünsün kanka.
         int searchBgColor = isDarkMode ? android.graphics.Color.parseColor("#0B0E11") : android.graphics.Color.parseColor("#F1F5F9");
 
         searchTickerInput.setTextColor(searchTextColor);
@@ -249,10 +246,10 @@ public class MainActivity extends AppCompatActivity {
         searchTickerInput.setBackgroundTintList(android.content.res.ColorStateList.valueOf(searchBgColor));
         // ---------------------------------------------------------------------
 
-        // KANKA LİSTEYİ ARTIK StocksList SIFINDAN ÇEKİYORUZ!
+        // Liste artık yazılı olarak değil de StockList'ten çekiliyor. // v2.0 commiti bu da.
         String[] usStocks = StocksList.getS_P500List(this);
 
-        // Adapter'ı ve onItemClickListener'ı önceki turda model kestiği için blank kalıyordu, şimdi tamam kanka!
+        // Adapter ve onItemClickListener'ı önceki turda model kestiği için blank kalıyordu, şuan fix.
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, usStocks);
         searchTickerInput.setAdapter(adapter);
 
@@ -302,7 +299,7 @@ public class MainActivity extends AppCompatActivity {
             bottomNavigation.setSelectedItemId(lastTabId);
         });
 
-    } // onCreate BURADA BİTİYOR
+    } // onCreate bitiş
 
     // DİNAMİK ARAYÜZ OLUŞTURUCU (onCreate dışında)
     private void buildMarketUI() {
@@ -363,7 +360,7 @@ public class MainActivity extends AppCompatActivity {
     private void updateAlarmUI() {
         containerAlarms.removeAllViews();
 
-        // 1. ADIM: O anki temayı algıla (Karanlık mı Aydınlık mı?)
+        // 1. ADIM: Tema algılama // karanlık mı aydınlık mı algıla.
         int nightModeFlags = getResources().getConfiguration().uiMode & android.content.res.Configuration.UI_MODE_NIGHT_MASK;
         int themeTextColor = (nightModeFlags == android.content.res.Configuration.UI_MODE_NIGHT_YES) ? android.graphics.Color.WHITE : android.graphics.Color.BLACK;
 
@@ -381,7 +378,7 @@ public class MainActivity extends AppCompatActivity {
                 TextView txtInfo = new TextView(this);
                 txtInfo.setText(alarm.displayName + " : " + alarm.targetPrice);
 
-                // 2. ADIM: Sabit koyu renk yerine, temaya göre değişen rengi basıyoruz!
+                // 2. ADIM: Sabit koyu renk yerine, temaya göre değişen renk.
                 txtInfo.setTextColor(themeTextColor);
 
                 txtInfo.setTextSize(14);
@@ -530,7 +527,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
 
-            // --- NÜKLEER RENK YÖNETİMİ ---
+            // --- RENK YÖNETİMİ ---
             // Gündüzleri canlı neon yeşil, geceleri göz yormayan mat zümrüt yeşili
             int pozitifYesil = isDarkMode ? android.graphics.Color.parseColor("#008A4D") : android.graphics.Color.parseColor("#00D06C");
             int negatifKirmizi = android.graphics.Color.parseColor("#FF3B30"); // Alttaki detaylar için sabit kırmızı
@@ -554,7 +551,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                     String sign = diff > 0 ? "+" : (diff < 0 ? "-" : "");
 
-                    // Ekstra metni (Pre-Market vb.) anlık değişime göre dinamik boya
+                    // Ekstra metni (Pre-Market vb.) anlık değişime göre dinamik renk
                     int extraColor = diff >= 0 ? pozitifYesil : negatifKirmizi;
 
                     tvExtra.setText(String.format("%s%s%.2f (%s%.2f%%)", prefix, sign, Math.abs(diff), sign, Math.abs(percent)));

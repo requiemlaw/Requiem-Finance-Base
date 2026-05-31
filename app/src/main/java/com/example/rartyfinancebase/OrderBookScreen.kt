@@ -17,6 +17,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -68,14 +69,26 @@ fun OrderBookScreen(modifier: Modifier = Modifier, viewModel: TerminalViewModel 
             }
         }
 
-        Box(modifier = Modifier.fillMaxWidth().height(150.dp)) {
+        // MUM GRAFİĞİ
+        Box(modifier = Modifier.fillMaxWidth().height(100.dp)) {
             LiveCandleChart(klines)
             Text("YENİ MUM: $cd", color = Color(0xFFF0B90B), fontSize = 11.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace, modifier = Modifier.align(Alignment.TopEnd).padding(6.dp))
         }
 
         ImbalanceIndicator(imbalance)
 
-        Row(modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp)) {
+        // --- V2.0 için: MARKET DEPTH (DERİNLİK) GRAFİĞİ ---
+        Spacer(modifier = Modifier.height(10.dp))
+        Text("PİYASA DERİNLİĞİ (MARKET DEPTH)", color = Color(0xFF848E9C), fontSize = 10.sp, fontWeight = FontWeight.Bold)
+        Box(modifier = Modifier.fillMaxWidth().height(120.dp).padding(vertical = 8.dp)) {
+            // orderBook null değilse çiz, boşsa (yükleniyorsa) gösterme
+            orderBook?.let { book ->
+                MarketDepthChart(bids = book.bids, asks = book.asks)
+            }
+        }
+        // -----------------------------------------------------------------------
+
+        Row(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
             Text("Alış (Bids)", color = Color(0xFF848E9C), fontSize = 11.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
             Text("Satış (Asks)", color = Color(0xFF848E9C), fontSize = 11.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f), textAlign = TextAlign.End)
         }
@@ -84,6 +97,72 @@ fun OrderBookScreen(modifier: Modifier = Modifier, viewModel: TerminalViewModel 
             Spacer(modifier = Modifier.width(12.dp))
             Box(modifier = Modifier.weight(1f)) { orderBook?.asks?.take(25)?.let { OrderBookList(it, false, 100.0) } }
         }
+    }
+}
+
+
+@Composable
+fun MarketDepthChart(bids: List<OrderBookItem>, asks: List<OrderBookItem>) {
+    if (bids.isEmpty() || asks.isEmpty()) return
+
+    // Birikimli (Cumulative) hacim hesaplama
+    val cumulativeBids = mutableListOf<Float>()
+    var sumBids = 0f
+    for (bid in bids.take(20)) {
+        sumBids += (bid.quantity.toFloatOrNull() ?: 0f)
+        cumulativeBids.add(sumBids)
+    }
+
+    val cumulativeAsks = mutableListOf<Float>()
+    var sumAsks = 0f
+    for (ask in asks.take(20)) {
+        sumAsks += (ask.quantity.toFloatOrNull() ?: 0f)
+        cumulativeAsks.add(sumAsks)
+    }
+
+    val maxVolume = max(cumulativeBids.maxOrNull() ?: 1f, cumulativeAsks.maxOrNull() ?: 1f)
+
+    Canvas(modifier = Modifier.fillMaxSize()) {
+        val width = size.width
+        val height = size.height
+        val halfWidth = width / 2f
+
+        // --- SOL TARAF: ALIŞ (BID) DUVARI (YEŞİL) ---
+        val bidPath = Path()
+        bidPath.moveTo(halfWidth, height) // Ortadan başla
+        val bidStepX = halfWidth / cumulativeBids.size
+
+        cumulativeBids.forEachIndexed { index, volume ->
+            // Fiyatlar sondan başa doğru (merkezden dışarı)
+            val x = halfWidth - (index * bidStepX)
+            val y = height - ((volume / maxVolume) * height)
+            bidPath.lineTo(x, y)
+        }
+        bidPath.lineTo(0f, height) // Sol alt köşeye in
+        bidPath.close() // Kapatıp doldur
+
+        drawPath(
+            path = bidPath,
+            color = Color(0xFF008A4D).copy(alpha = 0.5f) // Mat Yeşil Şeffaf
+        )
+
+        // --- SAĞ TARAF: SATIŞ (ASK) DUVARI (KIRMIZI) ---
+        val askPath = Path()
+        askPath.moveTo(halfWidth, height) // Ortadan başla
+        val askStepX = halfWidth / cumulativeAsks.size
+
+        cumulativeAsks.forEachIndexed { index, volume ->
+            val x = halfWidth + (index * askStepX)
+            val y = height - ((volume / maxVolume) * height)
+            askPath.lineTo(x, y)
+        }
+        askPath.lineTo(width, height) // Sağ alt köşeye in
+        askPath.close() // Kapatıp doldur
+
+        drawPath(
+            path = askPath,
+            color = Color(0xFFFF3B30).copy(alpha = 0.5f) // Kırmızı Şeffaf
+        )
     }
 }
 

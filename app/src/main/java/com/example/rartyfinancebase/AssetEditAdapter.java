@@ -38,7 +38,7 @@ public class AssetEditAdapter extends RecyclerView.Adapter<AssetEditAdapter.View
         notifyItemMoved(fromPosition, toPosition);
     }
 
-    // Sağa/Sola kaydırınca varlığı listeden silme
+    // Sağa-Sola kaydırınca varlığı listeden silmemesi için
     public void onItemDismiss(int position) {
         assetList.remove(position);
         notifyItemRemoved(position);
