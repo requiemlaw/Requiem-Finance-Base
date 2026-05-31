@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#0B0E11"
+    android:background="?android:attr/windowBackground"
     android:padding="24dp">
 
     <TextView
@@ -12,7 +12,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Yükleniyor..."
-        android:textColor="#FFFFFF"
+        android:textColor="?android:attr/textColorPrimary"
         android:textSize="24sp"
         android:textStyle="bold"/>
 
@@ -21,7 +21,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="$0.00"
-        android:textColor="#FFFFFF"
+        android:textColor="?android:attr/textColorPrimary"
         android:textSize="32sp"
         android:textStyle="bold"
         android:layout_marginTop="8dp"/>
@@ -30,7 +30,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="↗ Canlı Veri Takibi"
-        android:textColor="#00FF00"
+        android:textColor="#00D06C"
         android:textSize="14sp"
         android:textStyle="bold"/>
 
@@ -42,8 +42,7 @@
         <com.github.mikephil.charting.charts.LineChart
             android:id="@+id/lineChart"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:visibility="visible"/>
+            android:layout_height="match_parent" />
 
         <com.github.mikephil.charting.charts.CandleStickChart
             android:id="@+id/candleChart"
@@ -56,62 +55,64 @@
             android:layout_width="36dp"
             android:layout_height="36dp"
             android:layout_gravity="top|end"
-            android:layout_marginTop="8dp"
-            android:layout_marginEnd="8dp"
             android:background="@android:color/transparent"
             android:src="@android:drawable/ic_menu_sort_by_size"
-            android:padding="4dp"
-            android:elevation="4dp"
-            app:tint="#FFFFFF" />
+            app:tint="?android:attr/textColorPrimary" />
     </FrameLayout>
 
     <HorizontalScrollView
+        android:id="@+id/btnScrollView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
         android:layout_marginBottom="10dp"
-        android:scrollbars="none">
+        android:scrollbars="none"
+        android:background="@android:color/transparent">
 
         <LinearLayout
+            android:id="@+id/btnContainer"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:background="@android:color/transparent">
 
-            <Button android:id="@+id/btn15m" android:layout_width="wrap_content" android:layout_height="48dp" android:text="15D" android:layout_marginEnd="8dp" android:backgroundTint="#161A1E" android:textColor="#FFFFFF"/>
-            <Button android:id="@+id/btn1d" android:layout_width="wrap_content" android:layout_height="48dp" android:text="1G" android:layout_marginEnd="8dp" android:backgroundTint="#161A1E" android:textColor="#FFFFFF"/>
-            <Button android:id="@+id/btn1w" android:layout_width="wrap_content" android:layout_height="48dp" android:text="1H" android:layout_marginEnd="8dp" android:backgroundTint="#161A1E" android:textColor="#FFFFFF"/>
-            <Button android:id="@+id/btn1M" android:layout_width="wrap_content" android:layout_height="48dp" android:text="1AY" android:layout_marginEnd="8dp" android:backgroundTint="#161A1E" android:textColor="#FFFFFF"/>
-
+            <Button android:id="@+id/btn15m" android:layout_width="wrap_content" android:layout_height="48dp" android:text="15D" android:layout_marginEnd="8dp" />
+            <Button android:id="@+id/btn1d" android:layout_width="wrap_content" android:layout_height="48dp" android:text="1G" android:layout_marginEnd="8dp" />
+            <Button android:id="@+id/btn1w" android:layout_width="wrap_content" android:layout_height="48dp" android:text="1H" android:layout_marginEnd="8dp" />
+            <Button android:id="@+id/btn1M" android:layout_width="wrap_content" android:layout_height="48dp" android:text="1AY" android:layout_marginEnd="8dp" />
         </LinearLayout>
     </HorizontalScrollView>
 
     <LinearLayout
+        android:id="@+id/statsWrapper"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:background="#0B0E11"
-        android:paddingTop="16dp">
+        android:paddingTop="16dp"
+        android:background="@android:color/transparent">
 
         <LinearLayout
+            android:id="@+id/statsContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp"
-            android:background="#161A1E"> <TextView android:text="İstatistikler" android:textColor="#FFFFFF" android:textStyle="bold" android:textSize="16sp" android:layout_marginBottom="12dp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+            android:padding="16dp">
+
+            <TextView android:text="İstatistikler" android:textColor="?android:attr/textColorPrimary" android:textStyle="bold" android:textSize="16sp" android:layout_marginBottom="12dp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
 
             <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="wrap_content">
-                <TextView android:text="Gün Aralığı: " android:textColor="#AAAAAA" android:layout_width="100dp" android:layout_height="wrap_content"/>
-                <TextView android:id="@+id/tvDayRange" android:text="--" android:textColor="#FFFFFF" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+                <TextView android:text="Gün Aralığı: " android:textColor="?android:attr/textColorSecondary" android:layout_width="100dp" android:layout_height="wrap_content"/>
+                <TextView android:id="@+id/tvDayRange" android:text="--" android:textColor="?android:attr/textColorPrimary" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
             </LinearLayout>
 
             <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp">
-                <TextView android:text="52 Haftalık: " android:textColor="#AAAAAA" android:layout_width="100dp" android:layout_height="wrap_content"/>
-                <TextView android:id="@+id/tvYearRange" android:text="--" android:textColor="#FFFFFF" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+                <TextView android:text="52 Haftalık: " android:textColor="?android:attr/textColorSecondary" android:layout_width="100dp" android:layout_height="wrap_content"/>
+                <TextView android:id="@+id/tvYearRange" android:text="--" android:textColor="?android:attr/textColorPrimary" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
             </LinearLayout>
 
             <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp">
-                <TextView android:text="Hacim: " android:textColor="#AAAAAA" android:layout_width="100dp" android:layout_height="wrap_content"/>
-                <TextView android:id="@+id/tvVolume" android:text="--" android:textColor="#FFFFFF" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+                <TextView android:text="Hacim: " android:textColor="?android:attr/textColorSecondary" android:layout_width="100dp" android:layout_height="wrap_content"/>
+                <TextView android:id="@+id/tvVolume" android:text="--" android:textColor="?android:attr/textColorPrimary" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>

@@ -1,17 +1,19 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <style name="Base.Theme.RartyFinanceBase" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Ana arka planlar zifiri siyah -->
         <item name="android:windowBackground">#0B0E11</item>
         <item name="android:colorBackground">#0B0E11</item>
 
-        <!-- O sırıtan gri kutuları ve arama çubuklarını siyahla eziyoruz -->
         <item name="colorSurface">#0B0E11</item>
         <item name="colorSurfaceVariant">#0B0E11</item>
         <item name="colorSurfaceContainer">#0B0E11</item>
 
-        <!-- Yazı renkleri -->
         <item name="android:textColorPrimary">#FFFFFF</item>
         <item name="android:textColorSecondary">#AAAAAA</item>
+
+        <item name="android:statusBarColor">?android:attr/windowBackground</item>
+        <item name="android:navigationBarColor">?android:attr/windowBackground</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="O_MR1">false</item>
     </style>
 
     <style name="Theme.RartyFinanceBase" parent="Base.Theme.RartyFinanceBase" />

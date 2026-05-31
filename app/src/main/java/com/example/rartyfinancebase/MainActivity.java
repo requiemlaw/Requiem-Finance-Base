@@ -32,7 +32,6 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import android.content.SharedPreferences;
-import android.os.Looper;
 import android.widget.ImageButton;
 import android.widget.RelativeLayout;
 import androidx.appcompat.app.AppCompatDelegate;
@@ -55,9 +54,8 @@ public class MainActivity extends AppCompatActivity {
     private ComposeView composeContainer;
     private LinearLayout terminalContainer;
 
-    // Dark Mode için ekliyorum
+    // Dark Mode için
     private ImageButton btnThemeToggle;
-    private RelativeLayout transitionOverlay;
     private boolean isDarkMode = false;
     private SharedPreferences prefs;
 
@@ -120,8 +118,9 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        // --- MASTERMIND DOKUNUŞU: Tema kararı ekran çizilmeden ÖNCE verilir! ---
         prefs = getSharedPreferences("RequiemPrefs", MODE_PRIVATE);
+
+        // --- VARSAYILAN OLARAK KOYU MOD ---
         isDarkMode = prefs.getBoolean("isDarkMode", true);
 
         if (isDarkMode) {
@@ -129,10 +128,22 @@ public class MainActivity extends AppCompatActivity {
         } else {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
         }
-        // ----------------------------------------------------------------------
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // --- İŞTE SENİN KODDA SİLİNEN O EKSİK STARTCOLOR KISMI BURASI KANKA ---
+        // ANDROID 15 (API 35) KÖK ARKA PLAN BAŞLANGIÇ AYARI
+        int startColor = isDarkMode ? android.graphics.Color.parseColor("#0B0E11") : android.graphics.Color.WHITE;
+        getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+        getWindow().setStatusBarColor(startColor);
+        getWindow().setNavigationBarColor(startColor);
+        getWindow().getDecorView().setBackgroundColor(startColor);
+
+        androidx.core.view.WindowInsetsControllerCompat controller = new androidx.core.view.WindowInsetsControllerCompat(getWindow(), getWindow().getDecorView());
+        controller.setAppearanceLightStatusBars(!isDarkMode);
+        controller.setAppearanceLightNavigationBars(!isDarkMode);
+        // ----------------------------------------------------------------------
 
         // UI Bağlantıları
         containerAlarms = findViewById(R.id.containerAlarms);
@@ -142,15 +153,14 @@ public class MainActivity extends AppCompatActivity {
         spinnerAssets = findViewById(R.id.spinnerAssets);
         btnThemeToggle = findViewById(R.id.btnThemeToggle);
 
-        // --- V2 BAĞLANTILARI ---
         terminalContainer = findViewById(R.id.terminalContainer);
         composeContainer = findViewById(R.id.composeContainer);
         bottomNavigation = findViewById(R.id.bottomNavigation);
 
-        int bgColor = isDarkMode ? android.graphics.Color.parseColor("#0B0E11") : android.graphics.Color.parseColor("#FFFFFF");
-        terminalContainer.setBackgroundColor(bgColor);
-        
-        // Kategori Havuzunu Doldur
+        // startColor artık yukarıda tanımlı olduğu için buralar hata vermeyecek!
+        terminalContainer.setBackgroundColor(startColor);
+        bottomNavigation.setBackgroundColor(startColor);
+
         if (categoryList.isEmpty()) {
             categoryList.add(new PortfolioCategory("US-STOCKS", mag7List, false));
             categoryList.add(new PortfolioCategory("CRYPTO", cryptoList, true));
@@ -159,46 +169,50 @@ public class MainActivity extends AppCompatActivity {
             categoryList.add(new PortfolioCategory("EMTİALAR", commoditiesList, false));
         }
 
+        // --- BU API'LERİ KURMA VE UI OLUŞTURMA KISMI ÖNCEKİ TURDA UÇMUŞTU, BU ÇOK ÖNEMLİ ---
         setupApis();
         createNotificationChannel();
         requestPermission();
         setupAlarmSpinner();
         buildMarketUI();
 
-        // --- V2 ALT MENÜ TETİKLEYİCİSİ ---
+        // --- V2 ALT MENÜ TETİKLEYİCİSİ VE ANDROID 15 KESİN RENK FİXİ ---
         bottomNavigation.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();
+            androidx.core.view.WindowInsetsControllerCompat navController = new androidx.core.view.WindowInsetsControllerCompat(getWindow(), getWindow().getDecorView());
+
+            int targetColor;
+            boolean isLightIcons;
 
             if (itemId == R.id.nav_terminal) {
-                // 1. Sekme: Eski Terminal (Java) Arayüzü
+                targetColor = isDarkMode ? android.graphics.Color.parseColor("#0B0E11") : android.graphics.Color.WHITE;
+                isLightIcons = !isDarkMode;
+            } else {
+                targetColor = android.graphics.Color.parseColor("#0B0E11");
+                isLightIcons = false;
+            }
+
+            getWindow().getDecorView().setBackgroundColor(targetColor);
+            getWindow().setStatusBarColor(targetColor);
+            getWindow().setNavigationBarColor(targetColor);
+            bottomNavigation.setBackgroundColor(targetColor);
+
+            navController.setAppearanceLightStatusBars(isLightIcons);
+            navController.setAppearanceLightNavigationBars(isLightIcons);
+
+            if (itemId == R.id.nav_terminal) {
                 composeContainer.setVisibility(View.GONE);
                 terminalContainer.setVisibility(View.VISIBLE);
-                return true;
-            }
-            else if (itemId == R.id.nav_depth) {
-                // 2. Sekme: Yeni Derinlik Arayüzü (Compose)
+            } else {
                 terminalContainer.setVisibility(View.GONE);
                 composeContainer.setVisibility(View.VISIBLE);
-
-                // Çevirmen Köprü üzerinden Kotlin motorunu ateşle (0 = Derinlik)
-                ComposeBridge.setScreen(composeContainer, 0);
-
-                return true;
-            }
-            else if (itemId == R.id.nav_portfolio) {
-                // 3. Sekme: Yeni Portföy Arayüzü (Compose)
-                terminalContainer.setVisibility(View.GONE);
-                composeContainer.setVisibility(View.VISIBLE);
-
-                // Çevirmen Köprü üzerinden Kotlin motorunu ateşle (1 = Portföy)
-                ComposeBridge.setScreen(composeContainer, 1);
-
-                return true;
+                ComposeBridge.setScreen(composeContainer, itemId == R.id.nav_depth ? 0 : 1);
             }
 
-            return false;
+            return true;
         });
 
+        // --- TEMA DEĞİŞTİRME BUTONU ---
         btnThemeToggle.setOnClickListener(v -> {
             isDarkMode = !isDarkMode;
             prefs.edit().putBoolean("isDarkMode", isDarkMode).apply();
@@ -209,11 +223,11 @@ public class MainActivity extends AppCompatActivity {
                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
             }
 
-            // İşte bu komut o meşhur önizlemedeki geçişi tetikler
+            int currentTab = bottomNavigation.getSelectedItemId();
+            prefs.edit().putInt("lastTab", currentTab).apply();
             recreate();
         });
 
-        // Düzenleme Butonu
         Button btnEditPortfolio = findViewById(R.id.btnEditPortfolio);
         btnEditPortfolio.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, EditPortfolioActivity.class);
@@ -223,13 +237,22 @@ public class MainActivity extends AppCompatActivity {
         // --- ARAMA ÇUBUĞU VE S&P 500 HAVUZU ---
         AutoCompleteTextView searchTickerInput = findViewById(R.id.searchTickerInput);
 
-        String[] usStocks = {
-                "AAPL - Apple Inc.", "MSFT - Microsoft", "NVDA - Nvidia Corp.", "GOOGL - Alphabet (Class A)",
-                "GOOG - Alphabet (Class C)", "AMZN - Amazon", "META - Meta Platforms", "BRK.B - Berkshire Hathaway",
-                "LLY - Eli Lilly", "AVGO - Broadcom", "TSLA - Tesla", "JPM - JPMorgan Chase", "WMT - Walmart",
-                "BEN - Franklin Resources", "IVZ - Invesco", "TROW - T. Rowe Price", "PEGI - Pattern Energy"
-        };
+        // --- DOKUNUŞ: BEYAZ TEMADA BEMBEYAZ KALMA SORUNUNU ÇÖZEN FİX BURASI ---
+        int searchTextColor = isDarkMode ? android.graphics.Color.WHITE : android.graphics.Color.BLACK;
+        int searchHintColor = isDarkMode ? 0x80FFFFFF : android.graphics.Color.GRAY;
 
+        // Vurgu: Buradaki renk aydınlık temada arama çubuğunun arkasını gri yapar ki yazı görünsün kanka.
+        int searchBgColor = isDarkMode ? android.graphics.Color.parseColor("#0B0E11") : android.graphics.Color.parseColor("#F1F5F9");
+
+        searchTickerInput.setTextColor(searchTextColor);
+        searchTickerInput.setHintTextColor(searchHintColor);
+        searchTickerInput.setBackgroundTintList(android.content.res.ColorStateList.valueOf(searchBgColor));
+        // ---------------------------------------------------------------------
+
+        // KANKA LİSTEYİ ARTIK StocksList SIFINDAN ÇEKİYORUZ!
+        String[] usStocks = StocksList.getS_P500List(this);
+
+        // Adapter'ı ve onItemClickListener'ı önceki turda model kestiği için blank kalıyordu, şimdi tamam kanka!
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, usStocks);
         searchTickerInput.setAdapter(adapter);
 
@@ -244,8 +267,7 @@ public class MainActivity extends AppCompatActivity {
             intent.putExtra("NAME", name);
             intent.putExtra("SYMBOL", tickerSymbol);
             startActivity(intent);
-
-            searchTickerInput.setText("");
+            searchTickerInput.setText(""); // Arama bittikten sonra burayı boşalt, temiz kalsın.
         });
 
         // Alarm Kurma İşlemi
@@ -269,10 +291,17 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void run() {
                 refreshAllData();
-                handler.postDelayed(this, 8000);
+                handler.postDelayed(this, 8000); // 8 saniyede bir güncelle
             }
         };
         handler.post(updateTask);
+
+        // --- EKRAN YENİLENİNCE (TEMA DEĞİŞİMİ) SON SEKMEYİ TETİKLE ---
+        int lastTabId = prefs.getInt("lastTab", R.id.nav_terminal);
+        bottomNavigation.post(() -> {
+            bottomNavigation.setSelectedItemId(lastTabId);
+        });
+
     } // onCreate BURADA BİTİYOR
 
     // DİNAMİK ARAYÜZ OLUŞTURUCU (onCreate dışında)
@@ -333,6 +362,11 @@ public class MainActivity extends AppCompatActivity {
 
     private void updateAlarmUI() {
         containerAlarms.removeAllViews();
+
+        // 1. ADIM: O anki temayı algıla (Karanlık mı Aydınlık mı?)
+        int nightModeFlags = getResources().getConfiguration().uiMode & android.content.res.Configuration.UI_MODE_NIGHT_MASK;
+        int themeTextColor = (nightModeFlags == android.content.res.Configuration.UI_MODE_NIGHT_YES) ? android.graphics.Color.WHITE : android.graphics.Color.BLACK;
+
         if (alarmList.isEmpty()) {
             tvActiveAlarm.setVisibility(View.VISIBLE);
             tvActiveAlarm.setText("Aktif Alarm Yok");
@@ -346,7 +380,10 @@ public class MainActivity extends AppCompatActivity {
 
                 TextView txtInfo = new TextView(this);
                 txtInfo.setText(alarm.displayName + " : " + alarm.targetPrice);
-                txtInfo.setTextColor(android.graphics.Color.parseColor("#0F172A"));
+
+                // 2. ADIM: Sabit koyu renk yerine, temaya göre değişen rengi basıyoruz!
+                txtInfo.setTextColor(themeTextColor);
+
                 txtInfo.setTextSize(14);
                 txtInfo.setClickable(false);
 

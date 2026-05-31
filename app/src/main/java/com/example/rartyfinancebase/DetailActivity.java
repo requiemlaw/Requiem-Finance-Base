@@ -1,10 +1,13 @@
 package com.example.rartyfinancebase;
 
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.TextView;
+import android.widget.Button;
+import android.widget.LinearLayout;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.github.mikephil.charting.charts.LineChart;
@@ -21,6 +24,7 @@ import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 
 import android.widget.ImageButton;
 import android.view.View;
+import android.view.ViewGroup;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -47,18 +51,37 @@ public class DetailActivity extends AppCompatActivity {
     private YahooApi yahooApi;
 
     private double lastKnownPrice = 0.0;
+    private boolean detailIsDarkMode;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        SharedPreferences detailPrefs = getSharedPreferences("RequiemPrefs", MODE_PRIVATE);
+        detailIsDarkMode = detailPrefs.getBoolean("isDarkMode", true);
 
-        getWindow().getDecorView().setBackgroundColor(Color.parseColor("#0B0E11"));
+        if (detailIsDarkMode) {
+            androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES);
+        } else {
+            androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO);
+        }
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detail);
 
+        // --- RENKLER ---
+        int zifiriSiyah = Color.parseColor("#0B0E11");
+        int bgColor = detailIsDarkMode ? zifiriSiyah : Color.WHITE;
+        int boxColor = detailIsDarkMode ? zifiriSiyah : Color.parseColor("#F1F5F9");
+        int textColor = detailIsDarkMode ? Color.WHITE : Color.BLACK;
+
+        View rootView = ((ViewGroup) findViewById(android.R.id.content)).getChildAt(0);
+        if (rootView != null) { rootView.setBackgroundColor(bgColor); }
+
+        android.view.Window window = getWindow();
+        window.setStatusBarColor(bgColor);
+        window.setNavigationBarColor(bgColor);
+
         lineChart = findViewById(R.id.lineChart);
         candleChart = findViewById(R.id.candleChart);
-        lineChart.setBackgroundColor(Color.parseColor("#0B0E11"));
-        candleChart.setBackgroundColor(Color.parseColor("#0B0E11"));
         btnToggleChart = findViewById(R.id.btnToggleChart);
         detailName = findViewById(R.id.detailName);
         detailPrice = findViewById(R.id.detailPrice);
@@ -66,36 +89,51 @@ public class DetailActivity extends AppCompatActivity {
         tvYearRange = findViewById(R.id.tvYearRange);
         tvVolume = findViewById(R.id.tvVolume);
 
-        // Mastermind Butonu Olayı
-        btnToggleChart.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (isLineChartActive) {
-                    lineChart.setVisibility(View.GONE);
-                    candleChart.setVisibility(View.VISIBLE);
-                    isLineChartActive = false;
-                } else {
-                    candleChart.setVisibility(View.GONE);
-                    lineChart.setVisibility(View.VISIBLE);
-                    isLineChartActive = true;
-                }
+        lineChart.setBackgroundColor(Color.TRANSPARENT);
+        candleChart.setBackgroundColor(Color.TRANSPARENT);
+
+        // --- GRİLİKLERİ VE ÇUBUKLARI SÖKÜYORUZ ---
+        LinearLayout statsContainer = findViewById(R.id.statsContainer);
+        if(statsContainer != null) {
+            statsContainer.setBackgroundColor(bgColor); // Siyah ise siyah, beyaz ise beyaz
+            statsContainer.setElevation(0);
+        }
+
+        // 2. ScrollView'u zifiri siyahla aynı yap
+        android.widget.HorizontalScrollView hsv = findViewById(R.id.btnScrollView);
+        if (hsv != null) {
+            hsv.setBackgroundColor(bgColor);
+        }
+
+        // 3. Butonları arka planla birleştiriyoruz
+        Button[] buttons = { findViewById(R.id.btn15m), findViewById(R.id.btn1d), findViewById(R.id.btn1w), findViewById(R.id.btn1M) };
+        for(Button b : buttons) {
+            if(b != null) {
+                b.setBackgroundColor(bgColor); // Artık butonlar da background ile aynı
+                b.setTextColor(textColor);
+                b.setElevation(0);
+                b.setStateListAnimator(null);
             }
+        }
+
+        // ScrollView arka planını da zifiri siyah yap
+        View container = (View) findViewById(R.id.btn15m).getParent();
+        if (container != null) {
+            ((View) container.getParent()).setBackgroundColor(bgColor);
+        }
+
+        btnToggleChart.setOnClickListener(v -> {
+            if (isLineChartActive) { lineChart.setVisibility(View.GONE); candleChart.setVisibility(View.VISIBLE); isLineChartActive = false; }
+            else { candleChart.setVisibility(View.GONE); lineChart.setVisibility(View.VISIBLE); isLineChartActive = true; }
         });
 
         currentSymbol = getIntent().getStringExtra("SYMBOL");
         detailName.setText(getIntent().getStringExtra("NAME"));
 
-        if (currentSymbol != null && (currentSymbol.equals("GC=F") || currentSymbol.contains("TRY") || currentSymbol.contains(".IS") || currentSymbol.contains("XAU"))) {
-            currentInterval = "30m"; currentRange = "5d";
-        } else {
-            currentInterval = "15m"; currentRange = "1d";
-        }
+        currentInterval = (currentSymbol != null && (currentSymbol.equals("GC=F") || currentSymbol.contains("TRY") || currentSymbol.contains(".IS") || currentSymbol.contains("XAU"))) ? "30m" : "15m";
+        currentRange = (currentSymbol != null && (currentSymbol.equals("GC=F") || currentSymbol.contains("TRY") || currentSymbol.contains(".IS") || currentSymbol.contains("XAU"))) ? "5d" : "1d";
 
-        setupApis();
-        setupLineChart();
-        setupCandleChart(); // YENİ EKLENDİ
-        setupButtons();
-        fetchData();
+        setupApis(); setupLineChart(); setupCandleChart(); setupButtons(); fetchData();
     }
 
     private void setupApis() {
@@ -104,48 +142,21 @@ public class DetailActivity extends AppCompatActivity {
     }
 
     private void setupLineChart() {
-        lineChart.getAxisLeft().setTextColor(Color.WHITE);
-        lineChart.getXAxis().setTextColor(Color.WHITE);
-        lineChart.getDescription().setEnabled(false);
-        lineChart.getAxisRight().setEnabled(false);
-        lineChart.getXAxis().setDrawGridLines(false);
-        lineChart.getAxisLeft().setDrawGridLines(false);
-        lineChart.getLegend().setEnabled(false);
-        lineChart.setNoDataText("Piyasa verisi çekiliyor...");
-
-        lineChart.setOnChartValueSelectedListener(new OnChartValueSelectedListener() {
-            @Override public void onValueSelected(Entry e, Highlight h) { updatePriceDisplay(e.getY()); }
-            @Override public void onNothingSelected() { updatePriceDisplay(lastKnownPrice); }
-        });
+        int ct = detailIsDarkMode ? Color.WHITE : Color.BLACK;
+        lineChart.getAxisLeft().setTextColor(ct); lineChart.getXAxis().setTextColor(ct);
+        lineChart.getDescription().setEnabled(false); lineChart.getAxisRight().setEnabled(false);
+        lineChart.getXAxis().setDrawGridLines(false); lineChart.getAxisLeft().setDrawGridLines(false);
+        lineChart.getLegend().setEnabled(false); lineChart.setNoDataText("Yükleniyor...");
+        lineChart.getPaint(LineChart.PAINT_INFO).setColor(ct);
     }
 
     private void setupCandleChart() {
-        candleChart.getAxisLeft().setTextColor(Color.WHITE);
-        candleChart.getXAxis().setTextColor(Color.WHITE);   
-        candleChart.getDescription().setEnabled(false);
-        candleChart.getAxisRight().setEnabled(false);
-        candleChart.getXAxis().setDrawGridLines(false);
-        candleChart.getAxisLeft().setDrawGridLines(false);
-        candleChart.getLegend().setEnabled(false);
-        candleChart.setNoDataText("OHLC verisi çekiliyor...");
-
-        // YENİ: Parmağı kaydırınca fiyatın güncellenmesi (Dokunmatik Sensör)
-        candleChart.setOnChartValueSelectedListener(new OnChartValueSelectedListener() {
-            @Override
-            public void onValueSelected(Entry e, Highlight h) {
-                // Mum grafiğinde parmağın olduğu yerdeki kapanış (Close) fiyatını al
-                if (e instanceof CandleEntry) {
-                    updatePriceDisplay(((CandleEntry) e).getClose());
-                } else {
-                    updatePriceDisplay(e.getY());
-                }
-            }
-
-            @Override
-            public void onNothingSelected() {
-                updatePriceDisplay(lastKnownPrice);
-            }
-        });
+        int ct = detailIsDarkMode ? Color.WHITE : Color.BLACK;
+        candleChart.getAxisLeft().setTextColor(ct); candleChart.getXAxis().setTextColor(ct);
+        candleChart.getDescription().setEnabled(false); candleChart.getAxisRight().setEnabled(false);
+        candleChart.getXAxis().setDrawGridLines(false); candleChart.getAxisLeft().setDrawGridLines(false);
+        candleChart.getLegend().setEnabled(false); candleChart.setNoDataText("Yükleniyor...");
+        candleChart.getPaint(CandleStickChart.PAINT_INFO).setColor(ct);
     }
 
     private void setupButtons() {
@@ -156,47 +167,27 @@ public class DetailActivity extends AppCompatActivity {
     }
 
     private void fetchData() {
-        lineChart.clear();
-        candleChart.clear();
-        if (currentSymbol != null && (currentSymbol.startsWith("BTC") || currentSymbol.startsWith("ETH"))) {
-            fetchBinanceData();
-        } else {
-            fetchYahooData();
-        }
+        lineChart.clear(); candleChart.clear();
+        if (currentSymbol != null && (currentSymbol.startsWith("BTC") || currentSymbol.startsWith("ETH"))) { fetchBinanceData(); }
+        else { fetchYahooData(); }
     }
 
     private void fetchBinanceData() {
-        String bSymbol = currentSymbol.endsWith("USDT") ? currentSymbol : currentSymbol + "USDT";
-        String binanceInterval = "15m";
-        if (currentInterval.equals("1h") || currentRange.equals("7d")) binanceInterval = "1h";
-        if (currentInterval.equals("1d") || currentRange.equals("1mo")) binanceInterval = "1d";
-
-        binanceApi.getKlines(bSymbol, binanceInterval, 100).enqueue(new Callback<List<List<Object>>>() {
-            @Override
-            public void onResponse(Call<List<List<Object>>> call, Response<List<List<Object>>> response) {
+        String bS = currentSymbol.endsWith("USDT") ? currentSymbol : currentSymbol + "USDT";
+        String bI = currentInterval.equals("1h") ? "1h" : (currentInterval.equals("1d") ? "1d" : "15m");
+        binanceApi.getKlines(bS, bI, 100).enqueue(new Callback<List<List<Object>>>() {
+            @Override public void onResponse(Call<List<List<Object>>> call, Response<List<List<Object>>> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    List<Entry> lineEntries = new ArrayList<>();
-                    List<CandleEntry> candleEntries = new ArrayList<>();
-                    List<Long> timestamps = new ArrayList<>();
-                    try {
-                        for (int i = 0; i < response.body().size(); i++) {
-                            long ts = Double.valueOf(response.body().get(i).get(0).toString()).longValue() / 1000;
-                            float open = Float.parseFloat(response.body().get(i).get(1).toString());
-                            float high = Float.parseFloat(response.body().get(i).get(2).toString());
-                            float low = Float.parseFloat(response.body().get(i).get(3).toString());
-                            float close = Float.parseFloat(response.body().get(i).get(4).toString());
-
-                            lineEntries.add(new Entry(i, close));
-                            candleEntries.add(new CandleEntry(i, high, low, open, close));
-                            timestamps.add(ts);
-                            if (i == response.body().size() - 1) lastKnownPrice = close;
-                        }
-                        configureXAxis(lineChart, timestamps);
-                        configureXAxis(candleChart, timestamps);
-                        updatePriceDisplay(lastKnownPrice);
-                        updateLineChart(lineEntries);
-                        updateCandleChart(candleEntries);
-                    } catch (Exception e) { Log.e("BINANCE_PARSE", e.getMessage()); }
+                    List<Entry> le = new ArrayList<>(); List<CandleEntry> ce = new ArrayList<>(); List<Long> ts = new ArrayList<>();
+                    for (int i = 0; i < response.body().size(); i++) {
+                        long t = Double.valueOf(response.body().get(i).get(0).toString()).longValue() / 1000;
+                        float o = Float.parseFloat(response.body().get(i).get(1).toString()); float h = Float.parseFloat(response.body().get(i).get(2).toString());
+                        float l = Float.parseFloat(response.body().get(i).get(3).toString()); float c = Float.parseFloat(response.body().get(i).get(4).toString());
+                        le.add(new Entry(i, c)); ce.add(new CandleEntry(i, h, l, o, c)); ts.add(t);
+                        if (i == response.body().size() - 1) lastKnownPrice = c;
+                    }
+                    configureXAxis(lineChart, ts); configureXAxis(candleChart, ts); updatePriceDisplay(lastKnownPrice);
+                    updateLineChart(le); updateCandleChart(ce);
                 }
             }
             @Override public void onFailure(Call<List<List<Object>>> call, Throwable t) {}
@@ -205,130 +196,68 @@ public class DetailActivity extends AppCompatActivity {
 
     private void fetchYahooData() {
         yahooApi.getChartData(currentSymbol, currentInterval, currentRange).enqueue(new Callback<YahooFinanceResponse>() {
-            @Override
-            public void onResponse(Call<YahooFinanceResponse> call, Response<YahooFinanceResponse> response) {
-                try {
-                    if (response.isSuccessful() && response.body() != null && response.body().chart.result != null) {
-                        YahooFinanceResponse.Result result = response.body().chart.result.get(0);
-                        List<Double> closes = result.indicators.quote.get(0).close;
-                        List<Double> opens = result.indicators.quote.get(0).open;
-                        List<Double> highs = result.indicators.quote.get(0).high;
-                        List<Double> lows = result.indicators.quote.get(0).low;
-                        List<Long> timestamps = result.timestamp;
-
-                        updateStats(result.meta);
-
-                        List<Entry> lineEntries = new ArrayList<>();
-                        List<CandleEntry> candleEntries = new ArrayList<>();
-
-                        if (closes != null && timestamps != null) {
-                            configureXAxis(lineChart, timestamps);
-                            configureXAxis(candleChart, timestamps);
-
-                            for (int i = 0; i < closes.size(); i++) {
-                                // Yahoo bazen null veri atar, ondan koruyoruz
-                                if (closes.get(i) != null && opens != null && opens.get(i) != null && highs.get(i) != null && lows.get(i) != null) {
-                                    float c = closes.get(i).floatValue();
-                                    float o = opens.get(i).floatValue();
-                                    float h = highs.get(i).floatValue();
-                                    float l = lows.get(i).floatValue();
-
-                                    lineEntries.add(new Entry(i, c));
-                                    candleEntries.add(new CandleEntry(i, h, l, o, c));
-                                    lastKnownPrice = c;
-                                }
-                            }
-                            updatePriceDisplay(lastKnownPrice);
-                            updateLineChart(lineEntries);
-                            updateCandleChart(candleEntries);
+            @Override public void onResponse(Call<YahooFinanceResponse> call, Response<YahooFinanceResponse> response) {
+                if (response.isSuccessful() && response.body() != null && response.body().chart.result != null) {
+                    YahooFinanceResponse.Result r = response.body().chart.result.get(0);
+                    updateStats(r.meta);
+                    List<Entry> le = new ArrayList<>(); List<CandleEntry> ce = new ArrayList<>();
+                    for (int i = 0; i < r.indicators.quote.get(0).close.size(); i++) {
+                        if (r.indicators.quote.get(0).close.get(i) != null) {
+                            float c = r.indicators.quote.get(0).close.get(i).floatValue();
+                            le.add(new Entry(i, c));
+                            ce.add(new CandleEntry(i, r.indicators.quote.get(0).high.get(i).floatValue(), r.indicators.quote.get(0).low.get(i).floatValue(), r.indicators.quote.get(0).open.get(i).floatValue(), c));
+                            lastKnownPrice = c;
                         }
-                    } else {
-                        lineChart.setNoDataText("Veri bulunamadı.");
-                        candleChart.setNoDataText("Veri bulunamadı.");
                     }
-                } catch (Exception e) { Log.e("YAHOO_PARSE", e.getMessage()); }
+                    configureXAxis(lineChart, r.timestamp); configureXAxis(candleChart, r.timestamp); updatePriceDisplay(lastKnownPrice);
+                    updateLineChart(le); updateCandleChart(ce);
+                }
             }
             @Override public void onFailure(Call<YahooFinanceResponse> call, Throwable t) {}
         });
     }
 
-    private void updateStats(YahooFinanceResponse.Meta meta) {
-        if (meta == null) return;
+    private void updateStats(YahooFinanceResponse.Meta m) {
+        if (m == null) return;
         runOnUiThread(() -> {
-            tvDayRange.setText(String.format(Locale.US, "%.2f - %.2f", meta.regularMarketDayLow, meta.regularMarketDayHigh));
-            tvYearRange.setText(String.format(Locale.US, "%.2f - %.2f", meta.fiftyTwoWeekLow, meta.fiftyTwoWeekHigh));
-            if (meta.regularMarketVolume > 0) {
-                double vol = meta.regularMarketVolume / 1_000_000.0;
-                tvVolume.setText(String.format(Locale.US, "%.2fM", vol));
-            } else {
-                tvVolume.setText("N/A");
-            }
+            tvDayRange.setText(String.format(Locale.US, "%.2f - %.2f", m.regularMarketDayLow, m.regularMarketDayHigh));
+            tvYearRange.setText(String.format(Locale.US, "%.2f - %.2f", m.fiftyTwoWeekLow, m.fiftyTwoWeekHigh));
+            tvVolume.setText(m.regularMarketVolume > 0 ? String.format(Locale.US, "%.2fM", m.regularMarketVolume / 1_000_000.0) : "N/A");
         });
     }
 
-    private void configureXAxis(com.github.mikephil.charting.charts.BarLineChartBase chart, List<Long> timestamps) {
+    private void configureXAxis(com.github.mikephil.charting.charts.BarLineChartBase chart, List<Long> ts) {
         chart.getXAxis().setValueFormatter(new IndexAxisValueFormatter() {
-            @Override
-            public String getFormattedValue(float value) {
-                int index = (int) value;
-                if (index >= 0 && index < timestamps.size()) {
-                    Date date = new Date(timestamps.get(index) * 1000);
-                    Locale tr = new Locale("tr", "TR");
-                    SimpleDateFormat sdf;
-                    if (currentRange != null && (currentRange.equals("7d") || currentRange.equals("1mo"))) {
-                        sdf = new SimpleDateFormat("dd MMM", tr);
-                    } else {
-                        sdf = new SimpleDateFormat("HH:mm", tr);
-                    }
-                    sdf.setTimeZone(TimeZone.getTimeZone("GMT+3"));
-                    return sdf.format(date);
+            @Override public String getFormattedValue(float value) {
+                int i = (int) value;
+                if (i >= 0 && i < ts.size()) {
+                    SimpleDateFormat sdf = new SimpleDateFormat((currentRange != null && (currentRange.equals("7d") || currentRange.equals("1mo"))) ? "dd MMM" : "HH:mm", new Locale("tr", "TR"));
+                    sdf.setTimeZone(TimeZone.getTimeZone("GMT+3")); return sdf.format(new Date(ts.get(i) * 1000));
                 }
                 return "";
             }
         });
         chart.getXAxis().setPosition(com.github.mikephil.charting.components.XAxis.XAxisPosition.BOTTOM);
         chart.getXAxis().setLabelCount(4, true);
-        chart.getXAxis().setTextColor(Color.GRAY);
+        chart.getXAxis().setTextColor(detailIsDarkMode ? Color.GRAY : Color.BLACK);
     }
 
-    private void updateLineChart(List<Entry> entries) {
-        LineDataSet set = new LineDataSet(entries, "Fiyat");
-        set.setColor(Color.parseColor("#00D06C"));
-        set.setLineWidth(2.5f);
-        set.setDrawCircles(false);
-        set.setMode(LineDataSet.Mode.CUBIC_BEZIER);
-        set.setDrawValues(false);
-        lineChart.setData(new LineData(set));
-        lineChart.invalidate();
+    private void updateLineChart(List<Entry> e) {
+        LineDataSet s = new LineDataSet(e, "Fiyat");
+        s.setColor(Color.parseColor("#00D06C")); s.setLineWidth(2.5f); s.setDrawCircles(false);
+        s.setMode(LineDataSet.Mode.CUBIC_BEZIER); s.setDrawValues(false);
+        lineChart.setData(new LineData(s)); lineChart.invalidate();
     }
 
-    private void updateCandleChart(List<CandleEntry> entries) {
-        CandleDataSet set = new CandleDataSet(entries, "Mum Fiyat");
-
-        // YENİ: Kusursuz Mum Estetiği ve Wall Street Standartları
-        set.setShadowColorSameAsCandle(true); // Fitillerin rengi gövdeyle aynı olsun
-        set.setShadowWidth(1.2f); // Fitiller daha belirgin ve jilet gibi
-
-        set.setDecreasingColor(Color.parseColor("#FF3B30")); // Düşüş Kırmızı
-        set.setDecreasingPaintStyle(Paint.Style.FILL); // Gövde içi dolu
-
-        set.setIncreasingColor(Color.parseColor("#00D06C")); // Yükseliş Senin Neon Yeşil
-        set.setIncreasingPaintStyle(Paint.Style.FILL); // Gövde içi dolu
-
-        set.setNeutralColor(Color.GRAY);
-
-        // Parmakla dokununca çıkan artı (crosshair) çizgisinin estetiği
-        set.setHighLightColor(Color.parseColor("#888888"));
-        set.setHighlightLineWidth(1f);
-        set.setDrawValues(false);
-
-        candleChart.setData(new CandleData(set));
-        candleChart.invalidate();
+    private void updateCandleChart(List<CandleEntry> e) {
+        CandleDataSet s = new CandleDataSet(e, "Mum Fiyat");
+        s.setDecreasingColor(Color.parseColor("#FF3B30")); s.setIncreasingColor(Color.parseColor("#00D06C"));
+        s.setShadowColorSameAsCandle(true); s.setDrawValues(false);
+        candleChart.setData(new CandleData(s)); candleChart.invalidate();
     }
 
-    private void updatePriceDisplay(double price) {
-        String cSymbol = (currentSymbol != null && (currentSymbol.endsWith(".IS") || currentSymbol.equals("TRY=X"))) ? "₺" : "$";
-        String format = (price < 100 && !currentSymbol.contains("XAU") && !currentSymbol.contains("GC=F")) ? "%.4f" : "%.2f";
-        detailPrice.setText(cSymbol + String.format(Locale.US, format, price));
+    private void updatePriceDisplay(double p) {
+        String s = (currentSymbol != null && (currentSymbol.endsWith(".IS") || currentSymbol.equals("TRY=X"))) ? "₺" : "$";
+        detailPrice.setText(s + String.format(Locale.US, (p < 100 && !currentSymbol.contains("XAU") && !currentSymbol.contains("GC=F")) ? "%.4f" : "%.2f", p));
     }
 }
