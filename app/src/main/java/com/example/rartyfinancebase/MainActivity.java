@@ -530,9 +530,18 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
 
+            // --- NÜKLEER RENK YÖNETİMİ ---
+            // Gündüzleri canlı neon yeşil, geceleri göz yormayan mat zümrüt yeşili
+            int pozitifYesil = isDarkMode ? android.graphics.Color.parseColor("#008A4D") : android.graphics.Color.parseColor("#00D06C");
+            int negatifKirmizi = android.graphics.Color.parseColor("#FF3B30"); // Alttaki detaylar için sabit kırmızı
+
+            // Ana fiyatı günlük değişime göre boya (Artmışsa dinamik yeşil, düşmüşse kırmızı)
+            double dailyDiff = currentPrice - prevClose;
+            tvPrice.setTextColor(pozitifYesil);
+
             if (tvExtra != null) {
                 boolean isStock = false;
-                for (String[] stock : mag7List) { // Şimdilik sadece mag7 de ekstra göster
+                for (String[] stock : mag7List) {
                     if (stock[0].trim().equalsIgnoreCase(symbol.trim())) { isStock = true; break; }
                 }
 
@@ -544,9 +553,12 @@ public class MainActivity extends AppCompatActivity {
                         diff = currentPrice - prevClose; percent = (diff / prevClose) * 100;
                     }
                     String sign = diff > 0 ? "+" : (diff < 0 ? "-" : "");
-                    int color = diff >= 0 ? android.graphics.Color.parseColor("#00D06C") : android.graphics.Color.RED;
+
+                    // Ekstra metni (Pre-Market vb.) anlık değişime göre dinamik boya
+                    int extraColor = diff >= 0 ? pozitifYesil : negatifKirmizi;
+
                     tvExtra.setText(String.format("%s%s%.2f (%s%.2f%%)", prefix, sign, Math.abs(diff), sign, Math.abs(percent)));
-                    tvExtra.setTextColor(color);
+                    tvExtra.setTextColor(extraColor);
                     tvExtra.setVisibility(View.VISIBLE);
                 } else {
                     tvExtra.setVisibility(View.GONE);
