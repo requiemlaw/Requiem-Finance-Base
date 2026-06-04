@@ -19,7 +19,6 @@ public class YahooFinanceResponse {
         public double regularMarketPrice;
         public double chartPreviousClose;
         public double previousClose;
-        // İSTATİSTİKLER İÇİN EKLENENLER:
         public double regularMarketDayHigh;
         public double regularMarketDayLow;
         public double fiftyTwoWeekHigh;
@@ -31,11 +30,11 @@ public class YahooFinanceResponse {
         public List<Quote> quote;
     }
 
-    // MUM GRAFİĞİ VERİLERİ
     public static class Quote {
         public List<Double> open;
         public List<Double> high;
         public List<Double> low;
         public List<Double> close;
+        public List<Double> volume; // ← EKLENDİ
     }
 }

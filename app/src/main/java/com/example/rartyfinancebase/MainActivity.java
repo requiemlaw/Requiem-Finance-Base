@@ -204,7 +204,11 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 terminalContainer.setVisibility(View.GONE);
                 composeContainer.setVisibility(View.VISIBLE);
-                ComposeBridge.setScreen(composeContainer, itemId == R.id.nav_depth ? 0 : 1);
+                int tabIndex;
+                if      (itemId == R.id.nav_depth)     tabIndex = 0;
+                else if (itemId == R.id.nav_chart)     tabIndex = 1;
+                else                                   tabIndex = 2; // nav_portfolio
+                ComposeBridge.setScreen(composeContainer, tabIndex);
             }
 
             return true;

@@ -1,119 +1,279 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:background="?android:attr/windowBackground"
-    android:padding="24dp">
-
-    <TextView
-        android:id="@+id/detailName"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Yükleniyor..."
-        android:textColor="?android:attr/textColorPrimary"
-        android:textSize="24sp"
-        android:textStyle="bold"/>
-
-    <TextView
-        android:id="@+id/detailPrice"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="$0.00"
-        android:textColor="?android:attr/textColorPrimary"
-        android:textSize="32sp"
-        android:textStyle="bold"
-        android:layout_marginTop="8dp"/>
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="↗ Canlı Veri Takibi"
-        android:textColor="#00D06C"
-        android:textSize="14sp"
-        android:textStyle="bold"/>
-
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="300dp"
-        android:layout_marginTop="30dp">
-
-        <com.github.mikephil.charting.charts.LineChart
-            android:id="@+id/lineChart"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-
-        <com.github.mikephil.charting.charts.CandleStickChart
-            android:id="@+id/candleChart"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:visibility="gone"/>
-
-        <ImageButton
-            android:id="@+id/btnToggleChart"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:layout_gravity="top|end"
-            android:background="@android:color/transparent"
-            android:src="@android:drawable/ic_menu_sort_by_size"
-            app:tint="?android:attr/textColorPrimary" />
-    </FrameLayout>
-
-    <HorizontalScrollView
-        android:id="@+id/btnScrollView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:layout_marginBottom="10dp"
-        android:scrollbars="none"
-        android:background="@android:color/transparent">
-
-        <LinearLayout
-            android:id="@+id/btnContainer"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:background="@android:color/transparent">
-
-            <Button android:id="@+id/btn15m" android:layout_width="wrap_content" android:layout_height="48dp" android:text="15D" android:layout_marginEnd="8dp" />
-            <Button android:id="@+id/btn1d" android:layout_width="wrap_content" android:layout_height="48dp" android:text="1G" android:layout_marginEnd="8dp" />
-            <Button android:id="@+id/btn1w" android:layout_width="wrap_content" android:layout_height="48dp" android:text="1H" android:layout_marginEnd="8dp" />
-            <Button android:id="@+id/btn1M" android:layout_width="wrap_content" android:layout_height="48dp" android:text="1AY" android:layout_marginEnd="8dp" />
-        </LinearLayout>
-    </HorizontalScrollView>
+    android:fillViewport="true">
 
     <LinearLayout
-        android:id="@+id/statsWrapper"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:paddingTop="16dp"
-        android:background="@android:color/transparent">
+        android:padding="24dp">
 
+        <!-- ── Varlık adı ── -->
+        <TextView
+            android:id="@+id/detailName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Yükleniyor..."
+            android:textColor="?android:attr/textColorPrimary"
+            android:textSize="24sp"
+            android:textStyle="bold"/>
+
+        <!-- ── Fiyat ── -->
+        <TextView
+            android:id="@+id/detailPrice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="$0.00"
+            android:textColor="?android:attr/textColorPrimary"
+            android:textSize="32sp"
+            android:textStyle="bold"
+            android:layout_marginTop="8dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="↗ Canlı Veri Takibi"
+            android:textColor="#00D06C"
+            android:textSize="14sp"
+            android:textStyle="bold"/>
+
+        <!-- ══════════════════════════════════════════════════════════ -->
+        <!--  CHART PANEL                                               -->
+        <!-- ══════════════════════════════════════════════════════════ -->
         <LinearLayout
-            android:id="@+id/statsContainer"
+            android:id="@+id/chartPanel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:background="#0B0E11"
+            android:layout_marginTop="20dp"
+            android:paddingBottom="4dp">
 
-            <TextView android:text="İstatistikler" android:textColor="?android:attr/textColorPrimary" android:textStyle="bold" android:textSize="16sp" android:layout_marginBottom="12dp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+            <!-- Zaman aralığı butonları -->
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="36dp"
+                android:scrollbars="none"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp">
 
-            <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="wrap_content">
-                <TextView android:text="Gün Aralığı: " android:textColor="?android:attr/textColorSecondary" android:layout_width="100dp" android:layout_height="wrap_content"/>
-                <TextView android:id="@+id/tvDayRange" android:text="--" android:textColor="?android:attr/textColorPrimary" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:id="@+id/btnCandle15m"
+                        android:layout_width="52dp"
+                        android:layout_height="28dp"
+                        android:text="15D"
+                        android:gravity="center"
+                        android:textSize="11sp"
+                        android:textColor="#848E9C"
+                        android:background="@drawable/btn_interval_bg"
+                        android:layout_marginEnd="6dp"/>
+
+                    <TextView
+                        android:id="@+id/btnCandle1h"
+                        android:layout_width="52dp"
+                        android:layout_height="28dp"
+                        android:text="1S"
+                        android:gravity="center"
+                        android:textSize="11sp"
+                        android:textColor="#848E9C"
+                        android:background="@drawable/btn_interval_bg"
+                        android:layout_marginEnd="6dp"/>
+
+                    <TextView
+                        android:id="@+id/btnCandle4h"
+                        android:layout_width="52dp"
+                        android:layout_height="28dp"
+                        android:text="4S"
+                        android:gravity="center"
+                        android:textSize="11sp"
+                        android:textColor="#848E9C"
+                        android:background="@drawable/btn_interval_bg"
+                        android:layout_marginEnd="6dp"/>
+
+                    <TextView
+                        android:id="@+id/btnCandle1d"
+                        android:layout_width="52dp"
+                        android:layout_height="28dp"
+                        android:text="1G"
+                        android:gravity="center"
+                        android:textSize="11sp"
+                        android:textColor="#848E9C"
+                        android:background="@drawable/btn_interval_bg"
+                        android:layout_marginEnd="6dp"/>
+
+                    <TextView
+                        android:id="@+id/btnCandle1w"
+                        android:layout_width="52dp"
+                        android:layout_height="28dp"
+                        android:text="1H"
+                        android:gravity="center"
+                        android:textSize="11sp"
+                        android:textColor="#848E9C"
+                        android:background="@drawable/btn_interval_bg"
+                        android:layout_marginEnd="6dp"/>
+
+                    <TextView
+                        android:id="@+id/btnCandle1M"
+                        android:layout_width="52dp"
+                        android:layout_height="28dp"
+                        android:text="1AY"
+                        android:gravity="center"
+                        android:textSize="11sp"
+                        android:textColor="#848E9C"
+                        android:background="@drawable/btn_interval_bg"/>
+
+                </LinearLayout>
+            </HorizontalScrollView>
+
+            <!-- Candlestick Chart — Canvas tabanlı custom view -->
+            <com.example.rartyfinancebase.CandlestickChartView
+                android:id="@+id/candlestickChart"
+                android:layout_width="match_parent"
+                android:layout_height="340dp"
+                android:background="#0B0E11"
+                android:layout_marginTop="4dp"/>
+
+        </LinearLayout>
+
+        <!-- ══════════════════════════════════════════════════════════ -->
+        <!--  ESKİ BUTONLAR (15m / 1G / 1H / 1AY) — korunuyor         -->
+        <!--  DetailActivity.java'daki setupButtons() bunlara bağlı    -->
+        <!-- ══════════════════════════════════════════════════════════ -->
+        <HorizontalScrollView
+            android:id="@+id/btnScrollView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="10dp"
+            android:scrollbars="none"
+            android:background="@android:color/transparent">
+
+            <LinearLayout
+                android:id="@+id/btnContainer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:background="@android:color/transparent">
+
+                <Button android:id="@+id/btn15m"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:text="15D"
+                    android:layout_marginEnd="8dp"/>
+                <Button android:id="@+id/btn1d"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:text="1G"
+                    android:layout_marginEnd="8dp"/>
+                <Button android:id="@+id/btn1w"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:text="1H"
+                    android:layout_marginEnd="8dp"/>
+                <Button android:id="@+id/btn1M"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:text="1AY"
+                    android:layout_marginEnd="8dp"/>
+
             </LinearLayout>
+        </HorizontalScrollView>
 
-            <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp">
-                <TextView android:text="52 Haftalık: " android:textColor="?android:attr/textColorSecondary" android:layout_width="100dp" android:layout_height="wrap_content"/>
-                <TextView android:id="@+id/tvYearRange" android:text="--" android:textColor="?android:attr/textColorPrimary" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-            </LinearLayout>
+        <!-- ══════════════════════════════════════════════════════════ -->
+        <!--  İSTATİSTİKLER                                            -->
+        <!-- ══════════════════════════════════════════════════════════ -->
+        <LinearLayout
+            android:id="@+id/statsWrapper"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingTop="16dp"
+            android:background="@android:color/transparent">
 
-            <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp">
-                <TextView android:text="Hacim: " android:textColor="?android:attr/textColorSecondary" android:layout_width="100dp" android:layout_height="wrap_content"/>
-                <TextView android:id="@+id/tvVolume" android:text="--" android:textColor="?android:attr/textColorPrimary" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+            <LinearLayout
+                android:id="@+id/statsContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:text="İstatistikler"
+                    android:textColor="?android:attr/textColorPrimary"
+                    android:textStyle="bold"
+                    android:textSize="16sp"
+                    android:layout_marginBottom="12dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+                <LinearLayout
+                    android:orientation="horizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+                    <TextView
+                        android:text="Gün Aralığı: "
+                        android:textColor="?android:attr/textColorSecondary"
+                        android:layout_width="100dp"
+                        android:layout_height="wrap_content"/>
+                    <TextView
+                        android:id="@+id/tvDayRange"
+                        android:text="--"
+                        android:textColor="?android:attr/textColorPrimary"
+                        android:textStyle="bold"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:orientation="horizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp">
+                    <TextView
+                        android:text="52 Haftalık: "
+                        android:textColor="?android:attr/textColorSecondary"
+                        android:layout_width="100dp"
+                        android:layout_height="wrap_content"/>
+                    <TextView
+                        android:id="@+id/tvYearRange"
+                        android:text="--"
+                        android:textColor="?android:attr/textColorPrimary"
+                        android:textStyle="bold"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:orientation="horizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp">
+                    <TextView
+                        android:text="Hacim: "
+                        android:textColor="?android:attr/textColorSecondary"
+                        android:layout_width="100dp"
+                        android:layout_height="wrap_content"/>
+                    <TextView
+                        android:id="@+id/tvVolume"
+                        android:text="--"
+                        android:textColor="?android:attr/textColorPrimary"
+                        android:textStyle="bold"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+                </LinearLayout>
+
             </LinearLayout>
         </LinearLayout>
+
     </LinearLayout>
-</LinearLayout>
+</ScrollView>

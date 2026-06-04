@@ -9,6 +9,10 @@
         android:icon="@android:drawable/ic_menu_view"
         android:title="Derinlik" />
     <item
+        android:id="@+id/nav_chart"
+        android:icon="@android:drawable/ic_menu_agenda"
+        android:title="Chart" />
+    <item
         android:id="@+id/nav_portfolio"
         android:icon="@android:drawable/ic_menu_myplaces"
         android:title="Portföy" />

@@ -19,14 +19,9 @@ fun RequiemQuantumApp(tabIndex: Int) {
         contentAlignment = Alignment.TopStart
     ) {
         when (tabIndex) {
-            0 -> {
-                // 1. SEKME: DERİNLİK (ORDER BOOK)
-                OrderBookScreen()
-            }
-            1 -> {
-                // 2. SEKME: PORTFÖY
-                PortfolioScreen()
-            }
+            0 -> OrderBookScreen()
+            1 -> ChartScreen()
+            2 -> PortfolioScreen()
         }
     }
 }
