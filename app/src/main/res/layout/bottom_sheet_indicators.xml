@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="#121212"
+    android:padding="20dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="KAHİN İNDİKATÖR CEPHANELİĞİ"
+        android:textColor="#FFD700"
+        android:textStyle="bold"
+        android:textSize="18sp"
+        android:layout_marginBottom="16dp"/>
+
+    <Switch
+        android:id="@+id/switchRSI"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="RSI (Relative Strength Index)"
+        android:textColor="#FFFFFF"
+        android:layout_marginBottom="12dp"/>
+
+    <Switch
+        android:id="@+id/switchMACD"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="MACD"
+        android:textColor="#FFFFFF"
+        android:layout_marginBottom="12dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Hareketli Ortalamalar (MA) - Virgülle Ayır:"
+        android:textColor="#AAAAAA"
+        android:textSize="12sp"/>
+
+    <EditText
+        android:id="@+id/etMAPeriods"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Örn: 20, 50, 100, 200"
+        android:textColorHint="#555555"
+        android:textColor="#00FF00"
+        android:backgroundTint="#333333"
+        android:inputType="text"
+        android:layout_marginBottom="20dp"/>
+
+    <Button
+        android:id="@+id/btnApplyIndicators"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="SİSTEME ENTEGRE ET"
+        android:backgroundTint="#2E7D32"
+        android:textColor="#FFFFFF"/>
+</LinearLayout>

@@ -295,8 +295,15 @@ private fun loadYahoo(
 }
 
 private fun renderToChart(chartView: CandlestickChartView, candles: List<CandlestickChartView.Candle>) {
-    val (ma20, ma50, rsi) = IndicatorEngine.computeAll(candles)
+    val closes = candles.map { it.close }
+
+    // Şimdilik Chart ekranı için sabit ayarlar
+    val activeMaPeriods = listOf(20, 50)
+    val dynamicMAs = IndicatorEngine.computeDynamicMAs(closes, activeMaPeriods)
+    val rsi = IndicatorEngine.rsi(closes, 14)
+    val macd = IndicatorEngine.computeMacd(closes)
+
     chartView.post {
-        chartView.setData(candles, ma20, ma50, rsi)
+        chartView.setData(candles, dynamicMAs, rsi, macd, true, false)
     }
 }

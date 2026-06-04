@@ -14,7 +14,8 @@
         android:background="?android:attr/windowBackground"
         app:itemIconTint="#F0B90B"
         app:itemTextColor="#F0B90B"
-        app:menu="@menu/bottom_nav_menu" />
+        app:menu="@menu/bottom_nav_menu"
+        app:labelVisibilityMode="labeled"/>
 
     <!-- ANA İÇERİK ALANI (Menünün üstünde kalacak) -->
     <FrameLayout

@@ -6,32 +6,29 @@ package com.example.rartyfinancebase
  * Requiem Finance Terminal — Quantitative indicator calculation module.
  *
  * Provides static methods for:
- *   - Simple Moving Average  (SMA / MA)
- *   - Relative Strength Index (RSI-14, Wilder's smoothing method)
- *
- * All functions return lists of the same length as the input.
- * Values are null for the warmup period (insufficient data).
- *
- * Usage:
- *   val closes = candles.map { it.close }
- *   val ma20   = IndicatorEngine.ma(closes, 20)
- *   val ma50   = IndicatorEngine.ma(closes, 50)
- *   val rsi    = IndicatorEngine.rsi(closes, 14)
+ * - Simple Moving Average (SMA / MA) -> Dinamik liste destekli
+ * - Relative Strength Index (RSI-14, Wilder's smoothing method)
+ * - MACD (Moving Average Convergence Divergence)
  */
 object IndicatorEngine {
 
     /**
-     * Simple Moving Average over [period] bars.
-     *
-     * @param prices  list of closing prices (oldest first)
-     * @param period  lookback window
-     * @return        list of [Float?], null for index < period - 1
+     * MACD Sonuçlarını tutan veri sınıfı
+     * (MACD Line, Signal Line, Histogram)
+     */
+    data class MacdResult(
+        val macdLine: List<Float?>,
+        val signalLine: List<Float?>,
+        val histogram: List<Float?>
+    )
+
+    /**
+     * Simple Moving Average.
      */
     fun ma(prices: List<Float>, period: Int): List<Float?> {
         if (period <= 0 || prices.isEmpty()) return List(prices.size) { null }
 
         val result = ArrayList<Float?>(prices.size)
-
         for (i in prices.indices) {
             if (i < period - 1) {
                 result.add(null)
@@ -45,28 +42,56 @@ object IndicatorEngine {
     }
 
     /**
-     * Relative Strength Index using Wilder's Exponential Smoothing (SMMA).
-     *
-     * Standard 14-period RSI as used by Bloomberg, TradingView, and most
-     * institutional platforms.
-     *
-     * Formula:
-     *   RS  = AvgGain / AvgLoss   (Wilder smoothed)
-     *   RSI = 100 - (100 / (1 + RS))
-     *
-     * @param prices  list of closing prices (oldest first)
-     * @param period  RSI period (default: 14)
-     * @return        list of [Float?], null for index < period
+     * EMA (Exponential Moving Average) - MACD için gerekli.
+     */
+    fun ema(prices: List<Float>, period: Int): List<Float?> {
+        if (period <= 0 || prices.isEmpty() || prices.size < period) return List(prices.size) { null }
+
+        val result = ArrayList<Float?>(prices.size)
+        val multiplier = 2f / (period + 1f)
+        var prevEma: Float? = null
+
+        for (i in prices.indices) {
+            if (i < period - 1) {
+                result.add(null)
+            } else if (i == period - 1) {
+                // İlk EMA değeri, o periyodun SMA'sıdır
+                var sum = 0f
+                for (j in 0 until period) sum += prices[i - j]
+                val firstEma = sum / period
+                result.add(firstEma)
+                prevEma = firstEma
+            } else {
+                // EMA = (Price - prevEMA) * multiplier + prevEMA
+                val currentEma = (prices[i] - prevEma!!) * multiplier + prevEma
+                result.add(currentEma)
+                prevEma = currentEma
+            }
+        }
+        return result
+    }
+
+    /**
+     * Dinamik MA Listesi Hesaplayıcı
+     * Kullanıcı [20, 50, 100] girdiğinde, 3 ayrı listeyi Map olarak döner.
+     */
+    fun computeDynamicMAs(prices: List<Float>, periods: List<Int>): Map<Int, List<Float?>> {
+        val resultMap = mutableMapOf<Int, List<Float?>>()
+        for (period in periods) {
+            resultMap[period] = ma(prices, period)
+        }
+        return resultMap
+    }
+
+    /**
+     * Relative Strength Index (RSI)
      */
     fun rsi(prices: List<Float>, period: Int = 14): List<Float?> {
         if (prices.size < period + 1) return List(prices.size) { null }
 
         val result = ArrayList<Float?>(prices.size)
-
-        // Step 1: fill nulls for warmup
         for (i in 0 until period) result.add(null)
 
-        // Step 2: compute initial average gain / loss over first [period] changes
         var avgGain = 0f
         var avgLoss = 0f
         for (i in 1..period) {
@@ -76,16 +101,13 @@ object IndicatorEngine {
         avgGain /= period
         avgLoss /= period
 
-        // First RSI value
         result.add(calculateRsi(avgGain, avgLoss))
 
-        // Step 3: Wilder smoothing for the rest
         for (i in (period + 1) until prices.size) {
             val change = prices[i] - prices[i - 1]
             val gain   = if (change > 0) change else 0f
             val loss   = if (change < 0) abs(change) else 0f
 
-            // Wilder's smoothed moving average: new = (prev * (n-1) + current) / n
             avgGain = (avgGain * (period - 1) + gain) / period
             avgLoss = (avgLoss * (period - 1) + loss) / period
 
@@ -95,10 +117,6 @@ object IndicatorEngine {
         return result
     }
 
-    /**
-     * Compute RSI value from smoothed average gain and loss.
-     * Handles the edge case of zero avgLoss (RSI = 100).
-     */
     private fun calculateRsi(avgGain: Float, avgLoss: Float): Float {
         if (avgLoss == 0f) return 100f
         val rs = avgGain / avgLoss
@@ -106,21 +124,62 @@ object IndicatorEngine {
     }
 
     /**
-     * Convenience: compute all indicators at once from a candle list.
-     *
-     * @return Triple(ma20, ma50, rsi14)
+     * MACD (12, 26, 9) Hesaplayıcı
      */
-    fun computeAll(candles: List<CandlestickChartView.Candle>): Triple<List<Float?>, List<Float?>, List<Float?>> {
-        val closes = candles.map { it.close }
-        return Triple(
-            ma(closes, 20),
-            ma(closes, 50),
-            rsi(closes, 14)
-        )
+    fun computeMacd(prices: List<Float>, fast: Int = 12, slow: Int = 26, signal: Int = 9): MacdResult {
+        val emaFast = ema(prices, fast)
+        val emaSlow = ema(prices, slow)
+
+        val macdLine = ArrayList<Float?>(prices.size)
+        val nonNullMacdForSignal = ArrayList<Float>()
+
+        // MACD Line = EMA(fast) - EMA(slow)
+        for (i in prices.indices) {
+            val f = emaFast[i]
+            val s = emaSlow[i]
+            if (f != null && s != null) {
+                val diff = f - s
+                macdLine.add(diff)
+                nonNullMacdForSignal.add(diff)
+            } else {
+                macdLine.add(null)
+            }
+        }
+
+        // Signal Line = EMA(MACD Line, signal)
+        val signalLineBase = ema(nonNullMacdForSignal, signal)
+        val signalLine = ArrayList<Float?>(prices.size)
+
+        // MACD Line null olan kısımları Signal Line için de null olarak eşitle
+        var signalIndex = 0
+        for (m in macdLine) {
+            if (m == null) {
+                signalLine.add(null)
+            } else {
+                if (signalIndex < signalLineBase.size) {
+                    signalLine.add(signalLineBase[signalIndex])
+                    signalIndex++
+                } else {
+                    signalLine.add(null)
+                }
+            }
+        }
+
+        // Histogram = MACD Line - Signal Line
+        val histogram = ArrayList<Float?>(prices.size)
+        for (i in prices.indices) {
+            val m = macdLine[i]
+            val s = signalLine[i]
+            if (m != null && s != null) {
+                histogram.add(m - s)
+            } else {
+                histogram.add(null)
+            }
+        }
+
+        return MacdResult(macdLine, signalLine, histogram)
     }
 
     // ── Utility ────────────────────────────────────────────────────────────
-
-    /** Absolute value helper for Float */
     private fun abs(f: Float) = if (f < 0) -f else f
 }
