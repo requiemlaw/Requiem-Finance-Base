@@ -180,6 +180,26 @@ object IndicatorEngine {
         return MacdResult(macdLine, signalLine, histogram)
     }
 
+    fun computeBollingerBands(closes: List<Float>, period: Int = 20, multiplier: Float = 2f): Triple<List<Float?>, List<Float?>, List<Float?>> {
+        val upper = mutableListOf<Float?>()
+        val mid = mutableListOf<Float?>()
+        val lower = mutableListOf<Float?>()
+
+        for (i in closes.indices) {
+            if (i < period - 1) {
+                upper.add(null); mid.add(null); lower.add(null)
+            } else {
+                val sub = closes.subList(i - period + 1, i + 1)
+                val avg = sub.average().toFloat()
+                val stdDev = Math.sqrt(sub.map { Math.pow((it - avg).toDouble(), 2.0) }.average()).toFloat()
+                mid.add(avg)
+                upper.add(avg + (multiplier * stdDev))
+                lower.add(avg - (multiplier * stdDev))
+            }
+        }
+        return Triple(upper, mid, lower)
+    }
+
     // ── Utility ────────────────────────────────────────────────────────────
     private fun abs(f: Float) = if (f < 0) -f else f
 }

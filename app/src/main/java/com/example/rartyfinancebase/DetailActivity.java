@@ -3,12 +3,9 @@ package com.example.rartyfinancebase;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.TextView;
-import android.widget.LinearLayout;
 import android.widget.ImageView;
 import android.view.View;
-import android.view.ViewGroup;
 import androidx.appcompat.app.AppCompatActivity;
 
 import retrofit2.Call;
@@ -29,11 +26,14 @@ public class DetailActivity extends AppCompatActivity {
     private String currentSymbol, currentInterval, currentRange;
     private double lastKnownPrice = 0.0;
 
-    // ── İndikatör Hafızası ──
+    // ── İndikatör Hafızası (Varsayılan Değerler) ──
     private boolean isRsiEnabled = true;
     private boolean isMacdEnabled = false;
+    private boolean isMaEnabled = true;
+    private boolean isBollingerEnabled = false;
+    private boolean isVolumeEnabled = true;
     private String currentMaInput = "20, 50";
-    private List<Integer> activeMaPeriods = new ArrayList<>(java.util.Arrays.asList(20, 50));
+    private List<Integer> activeMaPeriods = new ArrayList<>();
 
     private BinanceApi binanceApi;
     private YahooApi yahooApi;
@@ -41,6 +41,7 @@ public class DetailActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // 1. TEMA AYARLARI
         SharedPreferences prefs = getSharedPreferences("RequiemPrefs", MODE_PRIVATE);
         boolean detailIsDarkMode = prefs.getBoolean("isDarkMode", true);
         androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(
@@ -53,11 +54,21 @@ public class DetailActivity extends AppCompatActivity {
         getWindow().setStatusBarColor(bgColor);
         getWindow().setNavigationBarColor(bgColor);
 
-        // KESİN ÇÖZÜM: Temayı ezip geç, ana gövdeyi doğrudan zifiri siyah (veya beyaz) yap!
         View mainScroll = findViewById(R.id.mainScrollView);
         if (mainScroll != null) {
             mainScroll.setBackgroundColor(bgColor);
         }
+
+        // 2. HAFIZADAN İNDİKATÖR AYARLARINI ÇEK (STATE PERSISTENCE)
+        SharedPreferences indPrefs = getSharedPreferences("IndicatorSettings", MODE_PRIVATE);
+        isRsiEnabled = indPrefs.getBoolean("rsi", true);
+        isMacdEnabled = indPrefs.getBoolean("macd", false);
+        isMaEnabled = indPrefs.getBoolean("ma", true);
+        isBollingerEnabled = indPrefs.getBoolean("bollinger", false);
+        isVolumeEnabled = indPrefs.getBoolean("volume", true);
+        currentMaInput = indPrefs.getString("maPeriods", "20, 50");
+
+        parseMaPeriods(); // Metni listeye çevir
 
         candlestickChart = findViewById(R.id.candlestickChart);
         detailName = findViewById(R.id.detailName);
@@ -73,16 +84,24 @@ public class DetailActivity extends AppCompatActivity {
         detailName.setText(getIntent().getStringExtra("NAME"));
 
         boolean isSlow = currentSymbol != null && (currentSymbol.equals("GC=F") || currentSymbol.contains("TRY") || currentSymbol.contains(".IS") || currentSymbol.contains("XAU"));
-        currentInterval = isSlow ? "30m" : "15m";
-        currentRange = "60d"; // İlk açılışta direkt 60 günlük veriyle başla
+        currentInterval = isSlow ? "1d" : "15m";
+        currentRange = isSlow ? "2y" : "5d";
 
         setupApis();
         setupCandleIntervalButtons();
 
-        // GHOST SCREEN KESİN ÇÖZÜM: Direkt veriyi çek emri
-        TextView defaultBtn = findViewById(R.id.btnCandle15m);
+        TextView defaultBtn = findViewById(isSlow ? R.id.btnCandle1M : R.id.btnCandle4h);
         if (defaultBtn != null) setSelectedButton(defaultBtn);
         fetchData();
+    }
+
+    private void parseMaPeriods() {
+        activeMaPeriods.clear();
+        if (!currentMaInput.trim().isEmpty()) {
+            for (String p : currentMaInput.split(",")) {
+                try { activeMaPeriods.add(Integer.parseInt(p.trim())); } catch (Exception ignored) {}
+            }
+        }
     }
 
     private void openIndicatorSettings() {
@@ -91,25 +110,42 @@ public class DetailActivity extends AppCompatActivity {
 
         android.widget.Switch switchRSI = dialog.findViewById(R.id.switchRSI);
         android.widget.Switch switchMACD = dialog.findViewById(R.id.switchMACD);
+        android.widget.Switch switchMA = dialog.findViewById(R.id.switchMA);
+        android.widget.Switch switchBollinger = dialog.findViewById(R.id.switchBollinger);
+        android.widget.Switch switchVolume = dialog.findViewById(R.id.switchVolume);
         android.widget.EditText etMAPeriods = dialog.findViewById(R.id.etMAPeriods);
         android.widget.Button btnApply = dialog.findViewById(R.id.btnApplyIndicators);
 
-        if (switchRSI == null || switchMACD == null || etMAPeriods == null || btnApply == null) return;
+        // Menü açıldığında şalterleri hafızadaki duruma göre ayarla
+        if (switchRSI != null) switchRSI.setChecked(isRsiEnabled);
+        if (switchMACD != null) switchMACD.setChecked(isMacdEnabled);
+        if (switchMA != null) switchMA.setChecked(isMaEnabled);
+        if (switchBollinger != null) switchBollinger.setChecked(isBollingerEnabled);
+        if (switchVolume != null) switchVolume.setChecked(isVolumeEnabled);
+        if (etMAPeriods != null) etMAPeriods.setText(currentMaInput);
 
-        switchRSI.setChecked(isRsiEnabled);
-        switchMACD.setChecked(isMacdEnabled);
-        etMAPeriods.setText(currentMaInput);
+        if (btnApply == null) return;
 
         btnApply.setOnClickListener(v -> {
-            isRsiEnabled = switchRSI.isChecked();
-            isMacdEnabled = switchMACD.isChecked();
-            currentMaInput = etMAPeriods.getText().toString();
-            activeMaPeriods.clear();
-            if (!currentMaInput.trim().isEmpty()) {
-                for (String p : currentMaInput.split(",")) {
-                    try { activeMaPeriods.add(Integer.parseInt(p.trim())); } catch (Exception ignored) {}
-                }
-            }
+            // Kullanıcının yeni seçimlerini al
+            if (switchRSI != null) isRsiEnabled = switchRSI.isChecked();
+            if (switchMACD != null) isMacdEnabled = switchMACD.isChecked();
+            if (switchMA != null) isMaEnabled = switchMA.isChecked();
+            if (switchBollinger != null) isBollingerEnabled = switchBollinger.isChecked();
+            if (switchVolume != null) isVolumeEnabled = switchVolume.isChecked();
+            if (etMAPeriods != null) currentMaInput = etMAPeriods.getText().toString();
+
+            // 3. YENİ AYARLARI HAFIZAYA KAYDET (MÜHÜRLE)
+            SharedPreferences.Editor editor = getSharedPreferences("IndicatorSettings", MODE_PRIVATE).edit();
+            editor.putBoolean("rsi", isRsiEnabled);
+            editor.putBoolean("macd", isMacdEnabled);
+            editor.putBoolean("ma", isMaEnabled);
+            editor.putBoolean("bollinger", isBollingerEnabled);
+            editor.putBoolean("volume", isVolumeEnabled);
+            editor.putString("maPeriods", currentMaInput);
+            editor.apply();
+
+            parseMaPeriods();
             fetchData();
             dialog.dismiss();
         });
@@ -123,15 +159,16 @@ public class DetailActivity extends AppCompatActivity {
 
     private void setupCandleIntervalButtons() {
         int[] ids = {R.id.btnCandle15m, R.id.btnCandle1h, R.id.btnCandle4h, R.id.btnCandle1d, R.id.btnCandle1w, R.id.btnCandle1M};
-        String[] intervals = {"15m", "1h", "4h", "1d", "1wk", "1mo"};
-
-        // KESİN ÇÖZÜM: Veri limitlerini sınırlarına kadar zorluyoruz.
-        // İntraday (gün içi) için max 60 gün, Günlük için 2 yıl, Aylık için 10 yıl!
-        String[] ranges = {"60d", "60d", "60d", "2y", "5y", "10y"};
+        String[] labels = {"1DK", "5DK", "15DK", "1S", "4S", "1G"};
+        String[] intervals = {"1m", "5m", "15m", "1h", "4h", "1d"};
+        String[] ranges = {"1d", "1d", "5d", "60d", "60d", "2y"};
 
         for (int i = 0; i < ids.length; i++) {
             TextView btn = findViewById(ids[i]);
             if (btn == null) continue;
+
+            btn.setText(labels[i]);
+
             final String interval = intervals[i];
             final String range = ranges[i];
             btn.setOnClickListener(v -> {
@@ -162,8 +199,6 @@ public class DetailActivity extends AppCompatActivity {
 
     private void fetchBinanceData() {
         String bSymbol = currentSymbol.endsWith("USDT") ? currentSymbol : currentSymbol + "USDT";
-
-        // 150 mum sınırını 1000'e çıkardık. Artık grafiği sola doğru kaydır kaydır bitmeyecek.
         binanceApi.getKlines(bSymbol, currentInterval, 1000).enqueue(new Callback<List<List<Object>>>() {
             @Override public void onResponse(Call<List<List<Object>>> call, Response<List<List<Object>>> response) {
                 if (response.isSuccessful() && response.body() != null) processBinanceAndRender(response.body());
@@ -174,6 +209,10 @@ public class DetailActivity extends AppCompatActivity {
 
     private void processBinanceAndRender(List<List<Object>> body) {
         List<CandlestickChartView.Candle> candles = new ArrayList<>();
+        double minPrice = Double.MAX_VALUE;
+        double maxPrice = Double.MIN_VALUE;
+        double totalVolume = 0.0;
+
         for (List<Object> kline : body) {
             try {
                 long t = Double.valueOf(kline.get(0).toString()).longValue() / 1000;
@@ -182,10 +221,26 @@ public class DetailActivity extends AppCompatActivity {
                 float l = Float.parseFloat(kline.get(3).toString());
                 float c = Float.parseFloat(kline.get(4).toString());
                 float v = Float.parseFloat(kline.get(5).toString());
+
+                if (l < minPrice) minPrice = l;
+                if (h > maxPrice) maxPrice = h;
+                totalVolume += v;
+
                 candles.add(new CandlestickChartView.Candle(o, h, l, c, v, t));
                 lastKnownPrice = c;
             } catch (Exception ignored) {}
         }
+
+        final double fMin = (minPrice == Double.MAX_VALUE) ? 0 : minPrice;
+        final double fMax = (maxPrice == Double.MIN_VALUE) ? 0 : maxPrice;
+        final double fVol = totalVolume;
+
+        runOnUiThread(() -> {
+            tvDayRange.setText(String.format(Locale.US, "%.2f - %.2f", fMin, fMax));
+            tvYearRange.setText("--");
+            tvVolume.setText(fVol > 0 ? String.format(Locale.US, "%.2f", fVol) : "--");
+        });
+
         renderChart(candles);
     }
 
@@ -226,19 +281,18 @@ public class DetailActivity extends AppCompatActivity {
         renderChart(candles);
     }
 
-    // ── KİLİT NOKTA: DİNAMİK RENDER MOTORU ──
     private void renderChart(List<CandlestickChartView.Candle> candles) {
         List<Float> closes = new ArrayList<>();
         for (CandlestickChartView.Candle c : candles) closes.add(c.getClose());
 
-        // Kotlin motorundan yeni hesaplamaları çek
-        Map<Integer, List<Float>> dynamicMAs = (Map) IndicatorEngine.INSTANCE.computeDynamicMAs(closes, activeMaPeriods);
-        List<Float> rsi14 = (List) IndicatorEngine.INSTANCE.rsi(closes, 14);
-        IndicatorEngine.MacdResult macd = IndicatorEngine.INSTANCE.computeMacd(closes, 12, 26, 9);
+        // Kullanıcı şalteri kapattıysa motoru yormuyoruz (Performans optimizasyonu)
+        Map<Integer, List<Float>> dynamicMAs = isMaEnabled ? (Map) IndicatorEngine.INSTANCE.computeDynamicMAs(closes, activeMaPeriods) : null;
+        List<Float> rsi14 = isRsiEnabled ? (List) IndicatorEngine.INSTANCE.rsi(closes, 14) : null;
+        IndicatorEngine.MacdResult macd = isMacdEnabled ? IndicatorEngine.INSTANCE.computeMacd(closes, 12, 26, 9) : null;
+        kotlin.Triple bbands = isBollingerEnabled ? IndicatorEngine.INSTANCE.computeBollingerBands(closes, 20, 2.0f) : null;
 
         runOnUiThread(() -> {
-            // Ressama tüm fırçaları teslim et
-            candlestickChart.setData(candles, dynamicMAs, rsi14, macd, isRsiEnabled, isMacdEnabled);
+            candlestickChart.setData(candles, dynamicMAs, rsi14, macd, isRsiEnabled, isMacdEnabled, isMaEnabled, isBollingerEnabled, bbands, isVolumeEnabled);
             updatePriceDisplay(lastKnownPrice);
         });
     }
