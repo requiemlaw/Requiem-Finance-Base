@@ -26,8 +26,8 @@ public class AssetEditAdapter extends RecyclerView.Adapter<AssetEditAdapter.View
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         String[] item = assetList.get(position);
-        holder.tvEditName.setText(item[1] + " (" + item[0] + ")"); // Örn: Apple Inc. (AAPL)
-        holder.btnRename.setVisibility(View.GONE); // Varlıklarda kalem ikonuna gerek yok, gizliyoruz
+        holder.tvEditName.setText(item[1] + " (" + item[0] + ")");
+        holder.btnRename.setVisibility(View.GONE);
     }
 
     @Override
@@ -38,7 +38,6 @@ public class AssetEditAdapter extends RecyclerView.Adapter<AssetEditAdapter.View
         notifyItemMoved(fromPosition, toPosition);
     }
 
-    // Sağa-Sola kaydırınca varlığı listeden silmemesi için
     public void onItemDismiss(int position) {
         assetList.remove(position);
         notifyItemRemoved(position);

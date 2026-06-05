@@ -44,7 +44,6 @@ private val SYMBOLS = listOf(
 
 private data class IntervalOption(val label: String, val interval: String, val range: String)
 
-// İSTEĞİN ÜZERİNE YENİ ZAMAN ARALIKLARI STRATEJİK OLARAK AYARLANDI
 private val INTERVALS = listOf(
     IntervalOption("1DK",  "1m",   "1d"),
     IntervalOption("5DK",  "5m",   "1d"),
@@ -70,7 +69,7 @@ fun ChartScreen() {
     var activeMaPeriods by remember { mutableStateOf(listOf(20, 50)) }
     var chartViewRef by remember { mutableStateOf<CandlestickChartView?>(null) }
 
-    // CANLI VERİ TETİKLEYİCİSİ: Her veri geldiğinde bu sayı artacak ve flaşör çakacak!
+    // CANLI VERİ TETİKLEYİCİSİ: Her veri geldiğinde bu sayı artar ve flaşör çakar.
     var triggerBlink by remember { mutableStateOf(0) }
 
     // Flaşör Animasyon Motoru
@@ -90,7 +89,6 @@ fun ChartScreen() {
     LaunchedEffect(selectedSymbol, selectedInterval, activeMaPeriods, isRsiEnabled, isMacdEnabled, isMaEnabled, isBollingerEnabled) {
         chartViewRef?.let { chartView ->
             loadChartData(context, chartView, selectedSymbol, selectedInterval, activeMaPeriods, isRsiEnabled, isMacdEnabled, isMaEnabled, isBollingerEnabled) {
-                // Veri başarıyla yüklenip render edildiğinde canlı tetiği ateşle!
                 triggerBlink++
             }
         }
@@ -206,7 +204,6 @@ private fun renderToChart(chartView: CandlestickChartView, candles: List<Candles
 
     chartView.post {
         chartView.setData(candles, mas, IndicatorEngine.rsi(closes, 14), IndicatorEngine.computeMacd(closes), rsi, macd, ma, bol, bbands)
-        // Arayüz başarıyla çizildi, veri akışı onaylandı!
         onDataLoaded()
     }
 }

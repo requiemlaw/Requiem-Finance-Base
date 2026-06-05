@@ -268,7 +268,7 @@ public class MainActivity extends AppCompatActivity {
             intent.putExtra("NAME", name);
             intent.putExtra("SYMBOL", tickerSymbol);
             startActivity(intent);
-            searchTickerInput.setText(""); // Arama bittikten sonra burayı boşalt, temiz kalsın.
+            searchTickerInput.setText("");
         });
 
         // Alarm Kurma İşlemi

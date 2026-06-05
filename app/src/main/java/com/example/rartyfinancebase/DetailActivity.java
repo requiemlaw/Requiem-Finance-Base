@@ -59,7 +59,7 @@ public class DetailActivity extends AppCompatActivity {
             mainScroll.setBackgroundColor(bgColor);
         }
 
-        // 2. HAFIZADAN İNDİKATÖR AYARLARINI ÇEK (STATE PERSISTENCE)
+        // 2. HAFIZA İNDİKATÖR AYARLARI (STATE PERSISTENCE)
         SharedPreferences indPrefs = getSharedPreferences("IndicatorSettings", MODE_PRIVATE);
         isRsiEnabled = indPrefs.getBoolean("rsi", true);
         isMacdEnabled = indPrefs.getBoolean("macd", false);
@@ -116,7 +116,7 @@ public class DetailActivity extends AppCompatActivity {
         android.widget.EditText etMAPeriods = dialog.findViewById(R.id.etMAPeriods);
         android.widget.Button btnApply = dialog.findViewById(R.id.btnApplyIndicators);
 
-        // Menü açıldığında şalterleri hafızadaki duruma göre ayarla
+        // Menü açıldığında şalterleri hafızadaki duruma göre ayarlar
         if (switchRSI != null) switchRSI.setChecked(isRsiEnabled);
         if (switchMACD != null) switchMACD.setChecked(isMacdEnabled);
         if (switchMA != null) switchMA.setChecked(isMaEnabled);
@@ -127,7 +127,7 @@ public class DetailActivity extends AppCompatActivity {
         if (btnApply == null) return;
 
         btnApply.setOnClickListener(v -> {
-            // Kullanıcının yeni seçimlerini al
+            // Kullanıcının yeni seçimlerini alır
             if (switchRSI != null) isRsiEnabled = switchRSI.isChecked();
             if (switchMACD != null) isMacdEnabled = switchMACD.isChecked();
             if (switchMA != null) isMaEnabled = switchMA.isChecked();
@@ -135,7 +135,7 @@ public class DetailActivity extends AppCompatActivity {
             if (switchVolume != null) isVolumeEnabled = switchVolume.isChecked();
             if (etMAPeriods != null) currentMaInput = etMAPeriods.getText().toString();
 
-            // 3. YENİ AYARLARI HAFIZAYA KAYDET (MÜHÜRLE)
+            // 3. YENİ AYARLARI HAFIZAYA KAYDET
             SharedPreferences.Editor editor = getSharedPreferences("IndicatorSettings", MODE_PRIVATE).edit();
             editor.putBoolean("rsi", isRsiEnabled);
             editor.putBoolean("macd", isMacdEnabled);
@@ -285,7 +285,7 @@ public class DetailActivity extends AppCompatActivity {
         List<Float> closes = new ArrayList<>();
         for (CandlestickChartView.Candle c : candles) closes.add(c.getClose());
 
-        // Kullanıcı şalteri kapattıysa motoru yormuyoruz (Performans optimizasyonu)
+        // Performans optimizasyonu
         Map<Integer, List<Float>> dynamicMAs = isMaEnabled ? (Map) IndicatorEngine.INSTANCE.computeDynamicMAs(closes, activeMaPeriods) : null;
         List<Float> rsi14 = isRsiEnabled ? (List) IndicatorEngine.INSTANCE.rsi(closes, 14) : null;
         IndicatorEngine.MacdResult macd = isMacdEnabled ? IndicatorEngine.INSTANCE.computeMacd(closes, 12, 26, 9) : null;

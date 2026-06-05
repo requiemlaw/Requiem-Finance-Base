@@ -28,7 +28,6 @@ class CandlestickChartView @JvmOverloads constructor(
     private var isBollingerEnabled = false
     private var isVolumeEnabled = true
 
-    // YENİ: Grafiğin ilk açılışta en sağa gitmesini sağlayacak tetikleyici
     private var isFirstDraw = true
 
     private val PADDING_LEFT = 12f
@@ -104,7 +103,7 @@ class CandlestickChartView @JvmOverloads constructor(
         this.isBollingerEnabled = isBol
         this.isVolumeEnabled = isVol
 
-        // Yeni veri geldiğinde (örn. pair veya interval değiştiğinde) tekrar en sağa gitmesi için şalteri sıfırla
+
         this.isFirstDraw = true
 
         post {
@@ -132,7 +131,7 @@ class CandlestickChartView @JvmOverloads constructor(
 
         recalculateDimensions()
 
-        // YENİ EKLENEN KISIM: İlk çizimde (veya veri değiştiğinde) ekranı direkt en sağa yasla!
+
         if (isFirstDraw) {
             val maxScroll = -(candles.size * candleWidth - chartW).coerceAtLeast(0f)
             scrollOffset = maxScroll
