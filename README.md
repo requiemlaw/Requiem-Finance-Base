@@ -1,31 +1,31 @@
 # Requiem Finance Base
 
-![Version](https://img.shields.io/badge/version-v2.0--release-brightgreen)
+![Version](https://img.shields.io/badge/version-v3.0.0--release-white)
 ![Platform](https://img.shields.io/badge/platform-Android-blue)
-![Java](https://img.shields.io/badge/Java-75.4%25-b07219?style=flat&logo=java&logoColor=white)
-![Kotlin](https://img.shields.io/badge/Kotlin-24.6%25-A97BFF?style=flat&logo=kotlin&logoColor=white)
+![Java](https://img.shields.io/badge/Java-56.9%25-b07219?style=flat&logo=java&logoColor=white)
+![Kotlin](https://img.shields.io/badge/Kotlin-43.1%25-A97BFF?style=flat&logo=kotlin&logoColor=white)
 
 
 ## Overview
-Requiem Finance Base has evolved into a zero-latency, institutional-grade financial terminal. Moving beyond simple asset tracking, the project now focuses on deep structural market analysis, raw order flow mechanics, and a hybrid UI architecture to deliver a centralized, high-performance dashboard for monitoring global equities, cryptocurrencies, and commodities.
+Requiem Terminal v3.0 (Quantum Edition) is a clinical, zero-latency financial terminal designed for quantitative analysis and high-stakes portfolio management. Evolving from a simple tracking tool into an institutional-grade ecosystem, this release integrates deep-market intelligence, real-time PnL (Profit & Loss) tracking, and a bespoke rendering architecture to dissect the structure of the market itself. By bridging the gap between raw API data and actionable portfolio intelligence, Requiem Terminal offers a complete analytical environment for equities, cryptocurrencies, commodities, and global indices.
 
 ## Core Functionality
-* **Native Order Flow & Market Depth:** Custom `Canvas`-based rendering engine that calculates cumulative volume in real-time, displaying structural Bid/Ask walls to track institutional market positioning.
-* **The Imbalance Matrix:** A real-time, dynamically animated gauge tracking the micro-structure of the market, instantly calculating the gravitational pull between Bullish and Bearish pressure.
-* **Context-Aware Aesthetics:** Intelligent color-shift logic that automatically toggles asset typography and structural highlights between high-contrast daylight colors and a monolithic Deep Black (`#0B0E11`) night mode to eliminate eye fatigue.
-* **Dynamic Category Management:** Fully customizable category headers. Users can rename, reorder, and restructure entire asset blocks via a real-time drag-and-drop interface.
-* **S&P 500 Integration:** Access a full trading universe with a search pool covering the top 500 US equities by market cap.
-* **Quant-Focused UI:** Optimized "Amnesia Mode" for the search engine, disabling keyboard suggestions and history for a cleaner, high-speed data-entry experience.
-* **Automated Alerts:** Integrated push notification system triggered by predefined price targets.
-* **Pre-Market Analysis:** Algorithmic calculation of US pre-market movements and percentage shifts.
+* **Real-Time PnL Engine:** Instant dollar and percentage-based performance monitoring. Every asset dynamically tracks its cost-basis against real-time price feeds.
+* **Canvas-Based Technical Suite:** A bespoke, non-library rendering core plotting RSI, MACD, Bollinger Bands, and cumulative volume profiles with zero-latency synchronization.
+* **Smart Asset Synthesis:** An intelligent, category-aware symbol acquisition engine with high-performance autocomplete filtering across S&P 500, Crypto, Commodities, and Indices.
+* **Institutional Risk Profiling:** Advanced capital-weighting risk algorithm that dynamically categorizes portfolio health (Low/Medium/High) based on dollar-weighted exposure.
+* **Persistent Workspace Logic:** A robust `SharedPreferences` state-binding layer that preserves all user-defined indicator configurations, volume toggles, and UI states across sessions.
+* **Auto-Lock-to-Latest Charting:** Advanced `Canvas` lifecycle management that enforces a hard-snap to the most recent price action, eliminating manual scrolling friction.
+* **Context-Aware Aesthetics:** Monochromatic, eye-friendly design system utilizing `#0B0E11` deep black canvas and high-contrast highlights for professional daylight/night-mode transitions.
+* **Custom Order Flow:** Native `Canvas` rendering for Market Depth, mapping cumulative volume and structural bid/ask pressure without relying on third-party charting libraries.
 
 ## Technical Specifications
-* **Language & Environment:** Hybrid development environment utilizing Native Java (JDK 17+) and Kotlin, ensuring maximum compatibility and seamless interoperability within the Android ecosystem.
-* **UI/UX Architecture (Interoperability):** Optimized Android UI architecture by seamlessly bridging legacy XML layouts with modern Jetpack Compose environments using `ComposeView`. This dual-engine approach guarantees maximum rendering performance for complex, custom `Canvas` graphics without a single frame of lag.
-* **Network Architecture:** Utilizes Retrofit 2 for type-safe HTTP networking. Operations run completely asynchronous via Coroutines and Handlers, ensuring the UI thread remains entirely unblocked during heavy, concurrent data pulls from Yahoo Finance and Binance APIs.
-* **System UI Integration:** Complete eradication of Android's default `elevation overlay` fog and forced drop-shadows. Utilizes programmatic `WindowInsetsController` hooks to enforce strict, system-wide aesthetic compliance with the terminal's palette.
-* **Data Parsing:** Integration of the GSON library for high-speed JSON serialization and deserialization, mapping complex financial data structures into lightweight objects.
-* **Notification Engine:** Leverages Android's `NotificationManager` and `NotificationCompat` for a robust local alerting system, capable of processing background price monitoring against user-defined thresholds.
+* **Language & Architecture:** Hybrid development environment utilizing Native Java (JDK 17+) and Kotlin. Optimized Android UI architecture bridging legacy XML layouts with modern Jetpack Compose environments using `ComposeView`.
+* **Rendering Engine:** Bespoke `Canvas`-based plotting engine built from the ground up for high-frequency market data visualization, ensuring 100% frame-rate stability.
+* **Network & Data Layer:** Asynchronous data synchronization via Retrofit 2 and Kotlin Coroutines, ensuring the Main UI thread remains strictly unblocked during concurrent data stream processing from Binance and Yahoo Finance APIs.
+* **Persistence Layer:** Integrated state management using `SharedPreferences`, enabling persistent caching of complex indicator hierarchies and visual preferences.
+* **High-Speed Serialization:** Integration of the GSON library for high-speed, type-safe JSON serialization/deserialization of complex financial data objects.
+* **System Compliance:** Programmatic `WindowInsetsController` hooks for strict, system-wide aesthetic enforcement of the terminal’s visual palette, bypassing standard OS-level drop-shadows and elevation overlays.
 
 ---
 
@@ -33,27 +33,30 @@ Requiem Finance Base has evolved into a zero-latency, institutional-grade financ
 
 #### 🌙 Night Operations
 <p align="center">
-  <img src="https://github.com/requiemlaw/Requiem-Finance-Base/blob/73317729c2d949c594d6fe56c0faff36a11c39f5/app/src/test/java/com/example/rartyfinancebase/RequiemTerminalV2.0-RELEASE.png" width="30%" alt="Night Main View"/>
-  &nbsp; &nbsp;
-  <img src="https://github.com/requiemlaw/Requiem-Finance-Base/blob/bd7e195220516f05898d5a49cfd9b15899e52504/app/src/test/java/com/example/rartyfinancebase/RequiemTerminalV2.0-RELEASE1.png" width="30%" alt="Night Order Book & Depth"/>
-  &nbsp; &nbsp;
-  <img src="https://github.com/requiemlaw/Requiem-Finance-Base/blob/bd7e195220516f05898d5a49cfd9b15899e52504/app/src/test/java/com/example/rartyfinancebase/RequiemTerminalV2.0-RELEASE2.png" width="30%" alt="Night Portfolio Engine"/>
+  <img src="https://github.com/requiemlaw/Requiem-Finance-Base/blob/bb7235145ea5d093fdcea29e0b982caf29e2ddd9/app/src/test/java/com/example/rartyfinancebase/RequiemTerminalv3photo1.png" width="30%"/> &nbsp; &nbsp;
+  <img src="https://github.com/requiemlaw/Requiem-Finance-Base/blob/bb7235145ea5d093fdcea29e0b982caf29e2ddd9/app/src/test/java/com/example/rartyfinancebase/RequiemTerminalv3photo2.png" width="30%"/> &nbsp; &nbsp;
+  <img src="https://github.com/requiemlaw/Requiem-Finance-Base/blob/4ab5eabd32bf321a23c136cd026fc86098f69af3/app/src/test/java/com/example/rartyfinancebase/RequiemTerminalv3photo8.png" width="30%"/>
+</p>
+
+#### 📈 Portfolio Management & Analytics
+<p align="center">
+  <img src="https://github.com/requiemlaw/Requiem-Finance-Base/blob/bb7235145ea5d093fdcea29e0b982caf29e2ddd9/app/src/test/java/com/example/rartyfinancebase/RequiemTerminalv3photo5.png" width="30%"/> &nbsp; &nbsp;
+  <img src="https://github.com/requiemlaw/Requiem-Finance-Base/blob/bb7235145ea5d093fdcea29e0b982caf29e2ddd9/app/src/test/java/com/example/rartyfinancebase/RequiemTerminalv3photo4.png" width="30%"/> &nbsp; &nbsp;
+  <img src="https://github.com/requiemlaw/Requiem-Finance-Base/blob/bb7235145ea5d093fdcea29e0b982caf29e2ddd9/app/src/test/java/com/example/rartyfinancebase/RequiemTerminalv3photo3.png" width="30%"/>
 </p>
 
 #### ☀️ Day Operations
 <p align="center">
-  <img src="https://github.com/requiemlaw/Requiem-Finance-Base/blob/bd7e195220516f05898d5a49cfd9b15899e52504/app/src/test/java/com/example/rartyfinancebase/RequiemTerminalV2.0-RELEASE3.png" width="30%" alt="Day Main View"/>
-  &nbsp; &nbsp;
-  <img src="https://github.com/requiemlaw/Requiem-Finance-Base/blob/bd7e195220516f05898d5a49cfd9b15899e52504/app/src/test/java/com/example/rartyfinancebase/RequiemTerminalV2.0-RELEASE4.png" width="30%" alt="Day Order Book & Depth"/>
-  &nbsp; &nbsp;
-  <img src="https://github.com/requiemlaw/Requiem-Finance-Base/blob/bd7e195220516f05898d5a49cfd9b15899e52504/app/src/test/java/com/example/rartyfinancebase/RequiemTerminalV2.0-RELEASE5.png" width="30%" alt="Day Portfolio Engine"/>
+  <img src="https://github.com/requiemlaw/Requiem-Finance-Base/blob/bb7235145ea5d093fdcea29e0b982caf29e2ddd9/app/src/test/java/com/example/rartyfinancebase/RequiemTerminalv3photo6.png" width="30%"/> &nbsp; &nbsp;
+  <img src="https://github.com/requiemlaw/Requiem-Finance-Base/blob/bb7235145ea5d093fdcea29e0b982caf29e2ddd9/app/src/test/java/com/example/rartyfinancebase/RequiemTerminalv3photo7.png" width="30%"/> &nbsp; &nbsp;
+  <img src="https://github.com/requiemlaw/Requiem-Finance-Base/blob/bd7e195220516f05898d5a49cfd9b15899e52504/app/src/test/java/com/example/rartyfinancebase/RequiemTerminalV2.0-RELEASE4.png" width="30%"/>
 </p>
 
 ### 📥 Download & Try it Out
 
 Experience the stable terminal environment directly on your Android device.
 
-[![Download APK](https://img.shields.io/badge/Download_APK-v2.0.0_Release-10b981?style=for-the-badge&logo=android)](https://github.com/requiemlaw/Requiem-Finance-Base/releases/tag/v2.0.0)
+[![Download APK](https://img.shields.io/badge/Download_APK-v3.0.0_Release-10b981?style=for-the-badge&logo=android)](https://github.com/requiemlaw/Requiem-Finance-Base/releases/tag/v3.0.0)
 
 ---
 
